@@ -22,24 +22,24 @@ if ($user['password']) {
         <table class="clementine_users_edit" id="clementine_users_edit">
             <thead>
                 <tr>
-                    <th class="col_login">Adresse e-mail </th>
-                    <th class="col_pass">Mot de passe</th>
-                    <th class="col_confpass">Confirmation du mot de passe</th>
-                    <th class="col_submit"></th>
+                    <th class="col1">Adresse email </th>
+                    <th class="col2">Mot de passe</th>
+                    <th class="col3">Confirmation du mot de passe</th>
+                    <th class="col4"></th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td class="col_login form_users_edit_mail">
+                    <td class="col1 form_users_edit_mail">
                         <input type="text" name="login" size="20" value="<?php echo (isset($user['login'])) ? $user['login'] : ''; ?>" />
                     </td>
-                    <td class="col_pass form_users_edit_mdp">
+                    <td class="col2 form_users_edit_mdp">
                         <input type="password" name="password" size="20" value="<?php echo (isset($user['password'])) ? $user['password'] : ''; ?>" />
                     </td>
-                    <td class="col_confpass form_users_edit_mdp_confirm">
+                    <td class="col3 form_users_edit_mdp_confirm">
                         <input type="password" name="password_conf" size="20" value="<?php echo (isset($user['password'])) ? $user['password'] : ''; ?>" />
                     </td>
-                    <td class="col_submit form_users_edit_submit">
+                    <td class="col4 form_users_edit_submit">
                         <input type="submit" name="valider" value="valider" />
                     </td>
                 </tr>
