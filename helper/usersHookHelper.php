@@ -11,16 +11,16 @@
 class usersHookHelper extends usersHookHelper_Parent
 {
     /**
-     * before_request : fonction appelee avant de remplir l'objet $request
+     * before_first_getRequest : fonction appelee avant le premier appel a getRequest()
      * 
      * @access public
      * @return void
      */
-    function before_request($request)
+    function before_first_getRequest()
     {
         // appelle le hook parent s'il existe
-        parent::before_request($request);
-        // utilisation du hook 'before_request'
+        parent::before_first_getRequest();
+        // utilisation du hook 'before_first_getRequest'
         $this->getModel('users')->getAuth();
     }
 
