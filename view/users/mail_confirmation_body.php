@@ -13,11 +13,10 @@ echo $ns->strip_tags($data['user']['login']);
 ?><br />
 <br />
 <strong>Mot de passe</strong><br />
-__CLEMENTINE_MAIL_ANONYMIZE_START__
 <?php
 $pass = $data['isnew']['password'];
 echo $ns->strip_tags($pass);
-?>__CLEMENTINE_MAIL_ANONYMIZE_STOP__<br />
+?><br />
 <br />
 Conservez ce message précieusement.<br />
 <hr />
