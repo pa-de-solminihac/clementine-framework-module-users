@@ -1,5 +1,6 @@
 <?php
-$current_url = $request->EQUIV[$request->LANG];
+$request = $this->getRequest();
+$current_url = $request['EQUIV'][$request['LANG']];
 ?>
 <div class="form_users_login">
 <h1>
