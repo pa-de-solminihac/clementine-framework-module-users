@@ -12,70 +12,12 @@ class usersUsersController extends usersUsersController_Parent
 {
 
     /**
-     * indexAction : liste des utilisateurs
-     * 
-     * @access public
-     * @return void
-     */
-    public function indexAction($request, $params = null)
-    {
-        // require privilege "list_users"
-        $users = $this->_crud;
-        if (!$users->hasPrivilege('list_users')) {
-            $this->getModel('fonctions')->redirect($users->getUrlLogin());
-        }
-        $conf = $this->getModuleConfig();
-        // options d'affichage
-        if (isset($params['show_groups'])) {
-            $this->data['show_groups'] = $params['show_groups'];
-        }
-        if (isset($params['show_validity'])) {
-            $this->data['show_validity'] = $params['show_validity'];
-        }
-        if (isset($params['show_date'])) {
-            $this->data['show_date'] = $params['show_date'];
-        }
-        if (isset($params['edit_url'])) {
-            $this->data['edit_url'] = $params['edit_url'];
-        }
-        if (isset($conf['simulate_users']) && $users->hasPrivilege('manage_users')) {
-            $this->data['simulate_users'] = $conf['simulate_users'];
-        }
-        $this->hideFields(array(
-            $users->table_users . '.password',
-            $users->table_users . '.salt',
-            $users->table_users . '.code_confirmation',
-            $users->table_users . '.active',
-            $users->table_users . '.date_creation',
-            $users->table_users . '.date_modification'
-        ));
-        // meilleure présentation de la date de création
-        $this->addField('custom_date_creation', null, array(
-            'sql_definition' => 'DATE_FORMAT(`date_creation`, "%d/%m/%Y %T")', 
-            'custom_order_by' => array (
-                'ASC' => 'date_creation ASC',
-                'DESC' => 'date_creation DESC'
-            )
-        ));
-        if (isset($params['show_groups'])) {
-            $this->addField('Groupes', null, array(
-                'sql_definition' =>  'GROUP_CONCAT(`group` ORDER BY `group` SEPARATOR ", ")',
-                'custom_search' => '`group`'
-            ));
-        }
-        $ret = parent::indexAction($request, $params);
-        $this->data['formtype'] = 'none';
-        $this->hideSections(array('readbutton', 'duplicatebutton', 'updatebutton', 'delbutton'));
-        return $ret;
-    }
-
-    /**
      * loginAction : login de l'utilisateur si POST et redirige l'utilisateur vers la page appelante si OK. Affiche le formulaire de login sinon (si pas ok, ou si pas de POST).
      * 
      * @access public
      * @return void
      */
-    public function loginAction($request, $params = null)
+    public function loginAction($params = null)
     {
         $ns = $this->getModel('fonctions');
         $this->data['message'] = "Connexion requise";
@@ -83,8 +25,8 @@ class usersUsersController extends usersUsersController_Parent
         $url_retour = $ns->ifGet('html', 'url_retour', null, __WWW__, 1, 1);
         if (!empty($_POST)) {
             // collect the data from the user
-            $login    = $ns->strip_tags($request->POST['login']);
-            $password = $ns->strip_tags($request->POST['password']);
+            $login    = $ns->strip_tags($ns->ifPost('string', 'login'));
+            $password = $ns->strip_tags($ns->ifPost('string', 'password'));
             if (empty($login)) {
                 $this->data['message'] = 'Vous devez fournir vos identifiants pour accéder à cette page';
             } else {
@@ -105,10 +47,10 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function simulateAction($request, $params = null)
+    public function simulateAction($params = null)
     {
         // accessible aux admin uniquement
-        $users = $this->_crud;
+        $users = $this->getModel('users');
         $users->needPrivilege('manage_users');
         // récupère les infos de utilisateur à "usurper"
         $ns = $this->getModel('fonctions');
@@ -136,9 +78,9 @@ class usersUsersController extends usersUsersController_Parent
             if (isset($_SESSION['previous_auth'])) {
                 unset($_SESSION['previous_auth']);
             }
-            $previous_auth = $this->_crud->getAuth();
+            $previous_auth = $this->getModel('users')->getAuth();
         }
-        $auth = $this->_crud->tryAuth($login, $password, $params);
+        $auth = $this->getModel('users')->tryAuth($login, $password, $params);
         // recrée la session si on est en train de simuler un utilisateur
         if ($auth && isset($params['bypass_login']) && $params['bypass_login']) {
             $this->logout();
@@ -146,8 +88,6 @@ class usersUsersController extends usersUsersController_Parent
         // recuperation de l'url retour
         if (!session_id()) {
             session_start();
-        } else {
-            session_regenerate_id();
         }
         if ($auth) {
             $_SESSION['auth'] = $auth;
@@ -175,7 +115,7 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function logoutAction($request, $params = null)
+    public function logoutAction($params = null)
     {
         $user_to_be = null;
         // prépare les infos si besoin d'un retour a l'utilisateur qu'on etait avant le simulate
@@ -213,13 +153,49 @@ class usersUsersController extends usersUsersController_Parent
         session_unset();
     }
 
-    public function rename_fields($params = null)
+    /**
+     * indexAction : liste des utilisateurs
+     * 
+     * @access public
+     * @return void
+     */
+    public function indexAction($params = null)
     {
-        $ret = parent::rename_fields($params);
-        $this->mapFieldName($this->_crud->table_users . '.login', 'Nom d\'utilisateur');
-        $this->mapFieldName($this->_crud->table_users . '.date_creation', 'Date de création');
-        $this->mapFieldName('custom_date_creation', 'Date de création');
-        return $ret;
+        // require privilege "list_users"
+        $users = $this->getModel('users');
+        if (!$users->hasPrivilege('list_users')) {
+            $this->getModel('fonctions')->redirect($users->getUrlLogin());
+        }
+        $conf = $this->getModuleConfig();
+        // charge les css et js
+        $cssjs = $this->getModel('cssjs');
+        // jQuery
+        if (Clementine::$config['module_jstools']['use_google_cdn']) {
+            $cssjs->register_js('jquery', array('src' => 'https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js'));
+        } else {
+            $cssjs->register_js('jquery', array('src' => __WWW_ROOT_JSTOOLS__ . '/skin/jquery/jquery.min.js'));
+        }
+        // dataTables : sortable tables
+        $cssjs->register_css('jquery.dataTables',  array('src' => __WWW_ROOT_JSTOOLS__ . '/skin/js/jquery.dataTables/dataTables.css'));
+        $cssjs->register_js('jquery.dataTables', array('src' => __WWW_ROOT_JSTOOLS__ . '/skin/js/jquery.dataTables/jquery.dataTables.min.js'));
+        $cssjs->register_foot('clementine_jstools-datatables', $this->getBlockHtml('jstools/js_datatables', $this->data));
+        // options d'affichage
+        if (isset($params['show_groups'])) {
+            $this->data['show_groups'] = $params['show_groups'];
+        }
+        if (isset($params['show_validity'])) {
+            $this->data['show_validity'] = $params['show_validity'];
+        }
+        if (isset($params['show_date'])) {
+            $this->data['show_date'] = $params['show_date'];
+        }
+        if (isset($params['edit_url'])) {
+            $this->data['edit_url'] = $params['edit_url'];
+        }
+        if (isset($conf['simulate_users']) && $users->hasPrivilege('manage_users')) {
+            $this->data['simulate_users'] = $conf['simulate_users'];
+        }
+        $this->data['users'] = $users->getUsers();
     }
 
     /**
@@ -228,15 +204,15 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function editAction($request, $params = null)
+    public function editAction($params = null)
     {
-        $this->_crud->needAuth();
+        $this->getModel('users')->needAuth();
         if (!isset($params['skip_auth'])) {
-            $this->_crud->needPrivilege('manage_users');
+            $this->getModel('users')->needPrivilege('manage_users');
         }
         $ns = $this->getModel('fonctions');
         $this->data['id'] = $ns->ifGet('int', 'id');
-        $user = $this->_crud->getUser($this->data['id']);
+        $user = $this->getModel('users')->getUser($this->data['id']);
         $user['password'] = 'password';
         $this->data['user'] = $user;
         $this->getModel('cssjs')->register_foot('users-js_submit', $this->getBlockHtml('users/js_submit', $this->data));
@@ -248,12 +224,12 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function addAction($request, $params = null)
+    public function addAction($params = null)
     {
-        $this->_crud->needAuth();
+        $this->getModel('users')->needAuth();
         $ns = $this->getModel('fonctions');
         $this->data['id'] = $ns->ifGet('int', 'id');
-        $this->data['user'] = $this->_crud->getUser($this->data['id']);
+        $this->data['user'] = $this->getModel('users')->getUser($this->data['id']);
     }
 
     /**
@@ -262,7 +238,7 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function deleteAction($request, $params = null)
+    public function deleteAction($params = null)
     {
         $ns = $this->getModel('fonctions');
         if (isset($params['user_id'])) {
@@ -270,7 +246,7 @@ class usersUsersController extends usersUsersController_Parent
         } else {
             $id = $ns->ifGet('int', 'id');
         }
-        $users = $this->_crud;
+        $users = $this->getModel('users');
         $auth = $users->needAuth();
         // recupere les données
         $user = $users->getUser($id);
@@ -281,7 +257,7 @@ class usersUsersController extends usersUsersController_Parent
         if ($id != $auth['id']) {
             // suppression du user
             if ($id) {
-                $success = $this->_crud->delUser($id);
+                $success = $this->getModel('users')->delUser($id);
             }
         }
         // messages
@@ -296,13 +272,13 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function oubliAction($request, $titre = null, $params = null)
+    public function oubliAction($titre = null, $params = null)
     {
         $ns = $this->getModel('fonctions');
         if (!empty($_POST)) {
-            $login = $ns->strip_tags($request->POST['login']);
+            $login = $ns->ifPost('string', 'login');
             if ($ns->est_email($login)) {
-                $user = $this->_crud->getUserByLogin($login);
+                $user = $this->getModel('users')->getUserByLogin($login);
             } else {
                 $this->data['error'] = 'Vous devez fournir l\'adresse e-mail utilisée lors de votre inscription.';
                 $user = 0;
@@ -339,19 +315,19 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function renewAction($request, $titre = null, $params = null)
+    public function renewAction($titre = null, $params = null)
     {
         $ns = $this->getModel('fonctions');
         $code = $ns->ifGet('string', 'c');
         $login = base64_decode($ns->ifGet('string', 'l'));
         if ($ns->est_email($login)) {
-            $user = $this->_crud->getUserByLogin($login);
+            $user = $this->getModel('users')->getUserByLogin($login);
             if ($user) {
                 $hash_confirmation = hash('sha256', $user['code_confirmation']);
                 if ($hash_confirmation == $code) {
                     // renouvelle les identifiants, change le code de confirmation, et envoie un mot de passe a l'utilisateur
                     $newpass = substr(hash('sha256', hash('sha256', (microtime() . rand(0, getrandmax())))), 0, 8);
-                    if ($this->_crud->updatePassword($login, $newpass)) {
+                    if ($this->getModel('users')->updatePassword($login, $newpass)) {
                         if ($titre === null) {
                             $titre = Clementine::$config['clementine_global']['site_name'] . " : renouvellement de votre mot de passe";
                         }
@@ -385,56 +361,12 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function createAction($request, $params = null)
+    public function createAction($params = null)
     {
         if (!isset($params['skip_auth'])) {
-            $this->_crud->needPrivilege('manage_users');
+            $this->getModel('users')->needPrivilege('manage_users');
         }
         $this->getModel('cssjs')->register_foot('users-js_submit', $this->getBlockHtml('users/js_submit', $this->data));
-    }
-
-    /**
-     * updateAction : en attente de la fin de la migration de USERS vers CRUD, on desactive ça par sécurité
-     * 
-     * @param mixed $request 
-     * @param mixed $params 
-     * @access public
-     * @return void
-     */
-    public function updateAction($request, $params = null)
-    {
-        $this->_crud->needPrivilege('manage_users');
-        return array('dont_getblock' => true);
-    }
-
-    /**
-     * readAction : en attente de la fin de la migration de USERS vers CRUD, on desactive ça par sécurité
-     * 
-     * @param mixed $request 
-     * @param mixed $params 
-     * @access public
-     * @return void
-     */
-    public function readAction($request, $params = null)
-    {
-        $this->_crud->needPrivilege('manage_users');
-        return array('dont_getblock' => true);
-    }
-
-    /**
-     * deletetmpfileAction : en attente de la fin de la migration de USERS vers CRUD, on desactive ça par sécurité
-     * 
-     * @param mixed $request 
-     * @param mixed $params 
-     * @access public
-     * @return void
-     */
-    public function deletetmpfileAction($request, $params = null)
-    {
-        if (!isset($params['skip_auth'])) {
-            $this->_crud->needPrivilege('manage_users');
-        }
-        return array('dont_getblock' => true);
     }
 
     /**
@@ -443,14 +375,15 @@ class usersUsersController extends usersUsersController_Parent
      * @access public
      * @return void
      */
-    public function validuserAction($request, $params = null)
+    public function validuserAction($params = null)
     {
         if (!isset($params['skip_auth'])) {
-            $this->_crud->needPrivilege('manage_users');
+            $this->getModel('users')->needPrivilege('manage_users');
         }
-        $users = $this->_crud;
-        if ($request->POST) {
-            $ret = $this->create_or_update_user($request, $params);
+        $request = $this->getRequest();
+        $users = $this->getModel('users');
+        if ($request['POST']) {
+            $ret = $this->create_or_update_user($params);
             // envoie les emails de confirmation / notification / activation
             // TODO: ajouter la gestion de l'activation
             if (isset($ret['user']) && isset($ret['isnew'])) {
@@ -473,18 +406,14 @@ class usersUsersController extends usersUsersController_Parent
             if (isset($params['url_retour'])) {
                 $url_retour = $params['url_retour'];
             }
-            $errors = array();
-            if (isset($this->data['errors'])) {
-                $errors = $this->data['errors'];
-            }
-            return $this->handle_errors($errors, $url_retour);
+            return $this->handle_errors($url_retour);
         }
     }
 
-    public function validuser_okAction($request, $params = null)
+    public function validuser_okAction($params = null)
     {
         $ns = $this->getModel('fonctions');
-        $users = $this->_crud;
+        $users = $this->getModel('users');
         if ($users->hasPrivilege('manage_users')) {
             $url_retour = __WWW__ . '/users/index';
         } else {
@@ -496,8 +425,12 @@ class usersUsersController extends usersUsersController_Parent
         }
     }
 
-    public function handle_errors($errors, $url_retour = null)
+    public function handle_errors($url_retour = null)
     {
+        $errors = array();
+        if (isset($this->data['errors'])) {
+            $errors = $this->data['errors'];
+        }
         $request = $this->getRequest();
         $ns = $this->getModel('fonctions');
         if (!count($errors)) {
@@ -510,7 +443,7 @@ class usersUsersController extends usersUsersController_Parent
             if (isset($this->data['isnew']) && ($this->data['isnew'])) {
                 $url_retour = $ns->mod_param($url_retour, 'isnew', 1);
             }
-            if ($request->AJAX) {
+            if ($request['AJAX']) {
                 echo '2';
                 echo $url_retour;
                 return array('dont_getblock' => true);
@@ -518,7 +451,7 @@ class usersUsersController extends usersUsersController_Parent
                 $ns->redirect($url_retour);
             }
         } else {
-            if ($request->AJAX) {
+            if ($request['AJAX']) {
                 // valeur de retour pour AJAX
                 echo '1';
                 $this->getBlock('users/validuser', $this->data);
@@ -527,14 +460,15 @@ class usersUsersController extends usersUsersController_Parent
         }
     }
 
-    public function create_or_update_user($request, $params = null)
+    public function create_or_update_user($params = null)
     {
         $ns = $this->getModel('fonctions');
-        $users = $this->_crud;
+        $users = $this->getModel('users');
         // recupere les parametres
         $id = $ns->ifPost('int', 'id');
         // recuperation des donnees et assainissement
-        $donnees = $users->sanitize($request->POST);
+        $request = $this->getRequest();
+        $donnees = $users->sanitize($request['POST']);
         // la modification du login requiert le privilege manage_users (ou un bypass dans $params)
         if ($id && isset($donnees['login'])) {
             $user = $users->getUser($id);
@@ -544,15 +478,11 @@ class usersUsersController extends usersUsersController_Parent
         }
         $donnees['date_modification']       = date('Y-m-d H:i:s');
         $auth = $users->getAuth();
-        // on rattache l'utilisateur si c'est une création par un utilisateur connecté
-        if (isset($auth['login']) && strlen($auth['login']) && !isset($user['id'])) {
+        // on ne rattache pas l'utilisateur si c'est un admin qui fait la modif
+        if (isset($auth['login']) && strlen($auth['login']) && !($users->hasPrivilege('manage_users'))) {
             // si c'est un adjoint on le rattache au meme parent que le compte maitre
             if (isset($params['adjoint']) && $params['adjoint']) {
-                $parents_directs = $users->getParents($auth['id'], 1, 1);
-                $parent_direct = false;
-                if (count($parents_directs)) {
-                    $parent_direct = $ns->array_first($parents_directs);
-                }
+                $parent_direct = each($users->getParents($auth['id'], 1, 1));
                 if ($parent_direct && isset($parent_direct['key']) && $parent_direct['key']) {
                     $donnees['id_parent'] = $parent_direct['key'];
                 } else {
@@ -563,19 +493,7 @@ class usersUsersController extends usersUsersController_Parent
                 $donnees['id_parent'] = $auth['id'];
             }
         } else {
-            if (!isset($user['id'])) {
-                $donnees['id_parent'] = 0;
-            } else {
-                // en cas de modif, on garde l'id parent existant
-                $parents_directs = $users->getParents($user['id'], 1, 1);
-                $parent_direct = false;
-                if (count($parents_directs)) {
-                    $parent_direct = $ns->array_first($parents_directs);
-                }
-                if ($parent_direct && isset($parent_direct['key']) && $parent_direct['key']) {
-                    $donnees['id_parent'] = $parent_direct['key'];
-                }
-            }
+            $donnees['id_parent'] = 0;
         }
         // verification des donnees requises
         $err = $this->getHelper('errors');
