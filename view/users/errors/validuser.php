@@ -15,7 +15,7 @@ if (isset($data['errors'])) {
     foreach ($data['errors'] as $type => $erreur) {
         if (is_array($erreur) && count($erreur)) {
             if (isset($data['error_sections'][$type]) && strlen($data['error_sections'][$type])) {
-                if ($request->AJAX) {
+                if ($request['AJAX']) {
                     echo $data['error_sections'][$type];
                 } else {
                     echo nl2br($data['error_sections'][$type]);
@@ -23,7 +23,7 @@ if (isset($data['errors'])) {
             }
             foreach ($erreur as $key => $msg) {
                 foreach ((array) $msg as $txt) {
-                    if ($request->AJAX) {
+                    if ($request['AJAX']) {
                         echo $txt;
                     } else {
                         echo nl2br($txt);
@@ -32,7 +32,7 @@ if (isset($data['errors'])) {
             }
         } else {
             foreach ((array) $erreur as $txt) {
-                if ($request->AJAX) {
+                if ($request['AJAX']) {
                     echo $txt;
                 } else {
                     echo nl2br($txt);
