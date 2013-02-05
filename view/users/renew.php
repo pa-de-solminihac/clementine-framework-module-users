@@ -11,6 +11,7 @@ if (isset($data['error'])) {
 <?php
 } else {
 ?>
+    <h1>Vos identifiants ont été renouvelés</h1>
     <div>
         <strong>Vos identifiants ont bien été renouvelés et vous ont été transmis par e-mail.</strong> 
         <br />
