@@ -22,7 +22,7 @@ if ($user['password']) {
         <table class="clementine_users_edit" id="clementine_users_edit">
             <thead>
                 <tr>
-                    <th class="col_login">Adresse e-mail </th>
+                    <th class="col_login">Adresse email </th>
                     <th class="col_pass">Mot de passe</th>
                     <th class="col_confpass">Confirmation du mot de passe</th>
                     <th class="col_submit"></th>

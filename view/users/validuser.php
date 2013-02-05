@@ -1,18 +1,14 @@
 <?php
-if (isset($data['errors'])) {
-    if (!$request->AJAX) {
+if (isset($data['message'])) {
 ?>
 <div class="form_users_validnew">
     <div class="error">
-<?php
-    }
-    $this->getBlock('users/errors/validuser', $data);
-    if (!$request->AJAX) {
-?>
+    <?php echo $data['message']; ?>
     </div>
     <div class="spacer"></div>
 </div>
 <?php
-    }
+} else {
+    $this->getModel('fonctions')->redirect(__WWW__ . '/users');
 }
 ?>
