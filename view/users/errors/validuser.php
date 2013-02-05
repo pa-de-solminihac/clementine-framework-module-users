@@ -12,31 +12,28 @@ if (!isset($data['error_sections']['missing_fields'])) {
     $data['error_sections']['missing_fields'] = 'Vous devez remplir les champs suivants :' . "\r\n";
 }
 if (isset($data['errors'])) {
+    $request = $this->getRequest();
     foreach ($data['errors'] as $type => $erreur) {
         if (is_array($erreur) && count($erreur)) {
             if (isset($data['error_sections'][$type]) && strlen($data['error_sections'][$type])) {
-                if ($request->AJAX) {
+                if ($request['AJAX']) {
                     echo $data['error_sections'][$type];
                 } else {
                     echo nl2br($data['error_sections'][$type]);
                 }
             }
             foreach ($erreur as $key => $msg) {
-                foreach ((array) $msg as $txt) {
-                    if ($request->AJAX) {
-                        echo $txt;
-                    } else {
-                        echo nl2br($txt);
-                    }
+                if ($request['AJAX']) {
+                    echo $msg;
+                } else {
+                    echo nl2br($msg);
                 }
             }
         } else {
-            foreach ((array) $erreur as $txt) {
-                if ($request->AJAX) {
-                    echo $txt;
-                } else {
-                    echo nl2br($txt);
-                }
+            if ($request['AJAX']) {
+                echo $erreur;
+            } else {
+                echo nl2br($erreur);
             }
         }
     }
