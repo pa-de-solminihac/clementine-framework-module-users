@@ -19,4 +19,4 @@ if ($groups) {
 <br />
 Vivement le prochain !<br />
 <hr />
-<em>Note : ceci est un message automatique. Merci de ne pas y répondre directement.</em>
+<em>Note : ceci est un message automatique de notification de création de compte utilisateur. Merci de ne pas y répondre directement.</em>
