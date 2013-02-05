@@ -19,7 +19,7 @@ class usersUsersModel extends usersUsersModel_Parent
     public $table_groups_has_privileges = 'clementine_users_groups_has_privileges';
     public $table_privileges            = 'clementine_users_privileges';
 
-    public function _init($params = null)
+    public function _init()
     {
         $this->tables = array($this->table_users => '',
             $this->table_users_has_groups => array('inner join' => "`" . $this->table_users_has_groups . "`.`user_id` = `" . $this->table_users . "`.`id` "),           // determine le champ AI andco_om.id
@@ -484,7 +484,6 @@ class usersUsersModel extends usersUsersModel_Parent
     public function modUser ($id, $donnees)
     {
         $id = (int) $id;
-        $ns = $this->getModel('fonctions');
         $user = $this->getUser($id);
         if ($user) {
             // ecrase les donnees chargees avec celles mises à jour
@@ -527,14 +526,9 @@ class usersUsersModel extends usersUsersModel_Parent
                     $db->query('ROLLBACK');
                     return false;
                 }
-                $parents_directs = $this->getParents($id, 1, 1);
-                if ($parents_directs) {
-                    $parent_direct = $ns->array_first($parents_directs);
-                } else {
-                    $parent_direct = array();
-                }
+                $parent_direct = each($this->getParents($id, 1, 1));
                 if ((isset($parent_direct['key']) && isset($user['id_parent']) && $parent_direct['key'] != $user['id_parent'])
-                    || (!isset($parent_direct['key']) && isset($user['id_parent']) && $user['id_parent'])) {
+                 || (!isset($parent_direct['key']) && isset($user['id_parent']) && $user['id_parent'])) {
                     if ($id != $user['id_parent']) {
                         if (!$this->updateParent($id, $user['id_parent'])) {
                             $db->query('ROLLBACK');
@@ -774,21 +768,21 @@ class usersUsersModel extends usersUsersModel_Parent
         $ns = $this->getModel('fonctions');
         $secure_array = array();
         if (isset($insecure_array['password']) && ($insecure_array['password'] != 'password')) {
-            $secure_array['password'] = $ns->strip_tags($insecure_array['password']);
+            $secure_array['password']            = $ns->ifPost('string', 'password', null, null, 0, 0, 0);
         } else {
             if (isset($secure_array['password'])) {
                 unset($secure_array['password']);
             }
         }
         if (isset($insecure_array['password_conf']) && ($insecure_array['password_conf'] != 'password')) {
-            $secure_array['password_conf'] = $ns->strip_tags($insecure_array['password_conf']);
+            $secure_array['password_conf']       = $ns->ifPost('string', 'password_conf', null, null, 0, 0, 0);
         } else {
             if (isset($secure_array['password_conf'])) {
                 unset($secure_array['password_conf']);
             }
         }
         if (isset($insecure_array['login'])) {
-            $secure_array['login'] = $ns->strip_tags($insecure_array['login']);
+            $secure_array['login']            = $ns->ifPost('string', 'login', null, null, 0, 0, 0);
         }
         return $secure_array;
     }
@@ -903,136 +897,6 @@ class usersUsersModel extends usersUsersModel_Parent
             }
         }
         return $str;
-    }
-
-    /**
-     * isParent : returns true if $id_parent is parent of $id_child
-     * 
-     * @param mixed $id_parent 
-     * @param mixed $id_child 
-     * @param mixed $depth 
-     * @access public
-     * @return void
-     */
-    public function isParent($id_parent, $id_child, $depth = 0)
-    {
-        $db = $this->getModel('db');
-        $sql = "
-            SELECT depth
-              FROM " . $this->table_users_treepaths . "
-             WHERE ancestor   = '" . (int) $id_parent . "'
-               AND descendant = '" . (int) $id_child . "'
-                AND depth != 0
-        ";
-        if ($depth) {
-            $sql .= "
-                AND depth <= " . (int) $depth . "
-            ";
-        }
-        $stmt = $db->query($sql);
-        $result = $db->fetch_array($stmt);
-        if ($result) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * isChild returns true if $id_child is child of $id_parent
-     * 
-     * @param mixed $id_child 
-     * @param mixed $id_parent 
-     * @param int $depth 
-     * @access public
-     * @return void
-     */
-    public function isChild($id_child, $id_parent, $depth = 0)
-    {
-        return $this->isParent($id_parent, $id_child, $depth);
-    }
-
-    /**
-     * isAlias : returns true if id_alias and id_user are aliases
-     * 
-     * @param mixed $user_id 
-     * @param mixed $alias_id 
-     * @param mixed $strict : returns true only if id_alias === is_alias_of field of user id_user
-     * @access public
-     * @return void
-     */
-    public function isAlias($id_alias, $id_user, $strict = false)
-    {
-        if ($id_alias == $id_user) {
-            return false;
-        }
-        $db = $this->getModel('db');
-        $sql = "
-            SELECT id
-              FROM " . $this->table_users . "
-             WHERE (
-                (is_alias_of = '" . (int) $id_user . "' AND id = '" . (int) $id_alias. "')
-        ";
-        if (!$strict) {
-            $sql .= "
-             OR (is_alias_of = '" . (int) $id_alias . "' AND id = '" . (int) $id_user. "')
-             OR ( 
-                SELECT id
-                  FROM " . $this->table_users . "
-                 WHERE (id = '" . (int) $id_alias . "' AND is_alias_of IN (SELECT is_alias_of FROM " . $this->table_users . " WHERE id = '" . (int) $id_user . "'))
-            )
-            ";
-        }
-        $sql .= ')';
-        $stmt = $db->query($sql);
-        $result = $db->fetch_array($stmt);
-        if ($result) {
-            return true;
-        }
-        return false;
-    }
-
-
-    /**
-     * isSibling : returns true if $id_user is sibling of $id_sibling
-     * 
-     * @param mixed $id_user 
-     * @param mixed $id_sibling 
-     * @param mixed $strict : if false, cousins will be considered as siblings too
-     * @access public
-     * @return void
-     */
-    public function isSibling($id_user, $id_sibling, $strict = 1)
-    {
-        if ($id_sibling == $id_user) {
-            return false;
-        }
-        $db = $this->getModel('db');
-        $sql = "
-            SELECT depth
-              FROM " . $this->table_users_treepaths . "
-             WHERE descendant = '" . (int) $id_user . "'
-               AND CONCAT(ancestor, '-', depth) IN (
-                SELECT CONCAT(ancestor, '-', depth)
-                  FROM " . $this->table_users_treepaths . "
-                 WHERE descendant = '" . (int) $id_sibling . "'
-        ";
-        if ($strict) {
-            $sql .= " AND depth = 1 ";
-        }
-        $sql .= "
-                )
-        ";
-        if ($strict) {
-            $sql .= " AND depth = 1 ";
-        }
-        $stmt = $db->query($sql);
-        $result = $db->fetch_array($stmt);
-        if ($result) {
-            if (!$this->isAlias($id_user, $id_sibling)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }
