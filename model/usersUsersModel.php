@@ -774,21 +774,21 @@ class usersUsersModel extends usersUsersModel_Parent
         $ns = $this->getModel('fonctions');
         $secure_array = array();
         if (isset($insecure_array['password']) && ($insecure_array['password'] != 'password')) {
-            $secure_array['password'] = $ns->strip_tags($insecure_array['password']);
+            $secure_array['password']            = $ns->ifPost('string', 'password', null, null, 0, 0, 0);
         } else {
             if (isset($secure_array['password'])) {
                 unset($secure_array['password']);
             }
         }
         if (isset($insecure_array['password_conf']) && ($insecure_array['password_conf'] != 'password')) {
-            $secure_array['password_conf'] = $ns->strip_tags($insecure_array['password_conf']);
+            $secure_array['password_conf']       = $ns->ifPost('string', 'password_conf', null, null, 0, 0, 0);
         } else {
             if (isset($secure_array['password_conf'])) {
                 unset($secure_array['password_conf']);
             }
         }
         if (isset($insecure_array['login'])) {
-            $secure_array['login'] = $ns->strip_tags($insecure_array['login']);
+            $secure_array['login']            = $ns->ifPost('string', 'login', null, null, 0, 0, 0);
         }
         return $secure_array;
     }

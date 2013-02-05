@@ -83,8 +83,8 @@ class usersUsersController extends usersUsersController_Parent
         $url_retour = $ns->ifGet('html', 'url_retour', null, __WWW__, 1, 1);
         if (!empty($_POST)) {
             // collect the data from the user
-            $login    = $ns->strip_tags($request->POST['login']);
-            $password = $ns->strip_tags($request->POST['password']);
+            $login    = $ns->strip_tags($ns->ifPost('string', 'login'));
+            $password = $ns->strip_tags($ns->ifPost('string', 'password'));
             if (empty($login)) {
                 $this->data['message'] = 'Vous devez fournir vos identifiants pour accéder à cette page';
             } else {
@@ -300,7 +300,7 @@ class usersUsersController extends usersUsersController_Parent
     {
         $ns = $this->getModel('fonctions');
         if (!empty($_POST)) {
-            $login = $ns->strip_tags($request->POST['login']);
+            $login = $ns->ifPost('string', 'login');
             if ($ns->est_email($login)) {
                 $user = $this->_crud->getUserByLogin($login);
             } else {
@@ -449,7 +449,7 @@ class usersUsersController extends usersUsersController_Parent
             $this->_crud->needPrivilege('manage_users');
         }
         $users = $this->_crud;
-        if ($request->POST) {
+        if ($request['POST']) {
             $ret = $this->create_or_update_user($request, $params);
             // envoie les emails de confirmation / notification / activation
             // TODO: ajouter la gestion de l'activation
@@ -510,7 +510,7 @@ class usersUsersController extends usersUsersController_Parent
             if (isset($this->data['isnew']) && ($this->data['isnew'])) {
                 $url_retour = $ns->mod_param($url_retour, 'isnew', 1);
             }
-            if ($request->AJAX) {
+            if ($request['AJAX']) {
                 echo '2';
                 echo $url_retour;
                 return array('dont_getblock' => true);
@@ -518,7 +518,7 @@ class usersUsersController extends usersUsersController_Parent
                 $ns->redirect($url_retour);
             }
         } else {
-            if ($request->AJAX) {
+            if ($request['AJAX']) {
                 // valeur de retour pour AJAX
                 echo '1';
                 $this->getBlock('users/validuser', $this->data);
@@ -534,7 +534,7 @@ class usersUsersController extends usersUsersController_Parent
         // recupere les parametres
         $id = $ns->ifPost('int', 'id');
         // recuperation des donnees et assainissement
-        $donnees = $users->sanitize($request->POST);
+        $donnees = $users->sanitize($request['POST']);
         // la modification du login requiert le privilege manage_users (ou un bypass dans $params)
         if ($id && isset($donnees['login'])) {
             $user = $users->getUser($id);
