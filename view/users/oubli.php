@@ -26,7 +26,7 @@ if (isset($data['message'])) {
             <br /><strong>Veuillez remplir le formulaire ci-dessous. </strong><br />
         </div>
         <div class="spacer"></div>
-        <label>Votre adresse e-mail</label>
+        <label>Votre adresse email</label>
         <input type="text" id="login" name="login" value="" />
         <input type="hidden" id="url_retour" name="url_retour" value="<?php echo (isset($data['url_retour'])) ? $data['url_retour'] : __WWW__; ?>" />
         <label>&nbsp;</label><input type="submit" value="Renouveler" />
