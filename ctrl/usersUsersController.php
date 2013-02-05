@@ -83,8 +83,8 @@ class usersUsersController extends usersUsersController_Parent
         $url_retour = $ns->ifGet('html', 'url_retour', null, __WWW__, 1, 1);
         if (!empty($_POST)) {
             // collect the data from the user
-            $login    = $ns->strip_tags($request->POST['login']);
-            $password = $ns->strip_tags($request->POST['password']);
+            $login    = $ns->strip_tags($ns->ifPost('string', 'login'));
+            $password = $ns->strip_tags($ns->ifPost('string', 'password'));
             if (empty($login)) {
                 $this->data['message'] = 'Vous devez fournir vos identifiants pour accéder à cette page';
             } else {
@@ -300,7 +300,7 @@ class usersUsersController extends usersUsersController_Parent
     {
         $ns = $this->getModel('fonctions');
         if (!empty($_POST)) {
-            $login = $ns->strip_tags($request->POST['login']);
+            $login = $ns->ifPost('string', 'login');
             if ($ns->est_email($login)) {
                 $user = $this->_crud->getUserByLogin($login);
             } else {
