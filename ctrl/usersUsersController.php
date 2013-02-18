@@ -530,6 +530,7 @@ class usersUsersController extends usersUsersController_Parent
     public function create_or_update_user($request, $params = null)
     {
         $ns = $this->getModel('fonctions');
+        $err = $this->getHelper('errors');
         $users = $this->_crud;
         // recupere les parametres
         $id = $ns->ifPost('int', 'id');
@@ -540,6 +541,16 @@ class usersUsersController extends usersUsersController_Parent
             $user = $users->getUser($id);
             if ($user['login'] != $donnees['login'] && !($users->hasPrivilege('manage_users') || isset($params['allow_login_modification']))) {
                 $ns->redirect($users->getUrlLogin());
+            } else {
+                // verifie que l'utilisateur n'existe pas déjà
+                $already_user = $users->getUserByLogin($donnees['login']);
+                if ($already_user) {
+                    $err->register_err('user', 'user_already_exists', "L'utilisateur existe déjà\r\n");
+                }
+                $erreurs = $err->get();
+                if (count($erreurs)) {
+                    return array('errors' => $erreurs);
+                }
             }
         }
         $donnees['date_modification']       = date('Y-m-d H:i:s');
@@ -578,7 +589,6 @@ class usersUsersController extends usersUsersController_Parent
             }
         }
         // verification des donnees requises
-        $err = $this->getHelper('errors');
         $users->validate($donnees, $id);
         $erreurs = $err->get();
         $ret = array();
