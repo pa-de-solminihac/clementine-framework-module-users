@@ -539,17 +539,19 @@ class usersUsersController extends usersUsersController_Parent
         // la modification du login requiert le privilege manage_users (ou un bypass dans $params)
         if ($id && isset($donnees['login'])) {
             $user = $users->getUser($id);
-            if ($user['login'] != $donnees['login'] && !($users->hasPrivilege('manage_users') || isset($params['allow_login_modification']))) {
-                $ns->redirect($users->getUrlLogin());
-            } else {
-                // verifie que l'utilisateur n'existe pas déjà
-                $already_user = $users->getUserByLogin($donnees['login']);
-                if ($already_user) {
-                    $err->register_err('user', 'user_already_exists', "L'utilisateur existe déjà\r\n");
-                }
-                $erreurs = $err->get();
-                if (count($erreurs)) {
-                    return array('errors' => $erreurs);
+            if ($user['login'] != $donnees['login']) {
+                if (!($users->hasPrivilege('manage_users') || isset($params['allow_login_modification']))) {
+                    $ns->redirect($users->getUrlLogin());
+                } else {
+                    // verifie que l'utilisateur n'existe pas déjà
+                    $already_user = $users->getUserByLogin($donnees['login']);
+                    if ($already_user) {
+                        $err->register_err('user', 'user_already_exists', "L'utilisateur existe déjà\r\n");
+                    }
+                    $erreurs = $err->get();
+                    if (count($erreurs)) {
+                        return array('errors' => $erreurs);
+                    }
                 }
             }
         }
