@@ -59,7 +59,7 @@ class usersUsersController extends usersUsersController_Parent
         ));
         if (isset($params['show_groups'])) {
             $this->addField('Groupes', null, array(
-                'sql_definition' =>  'GROUP_CONCAT(`group` ORDER BY `group` SEPARATOR ", ")',
+                'sql_definition' =>  'GROUP_CONCAT(DISTINCT `group` ORDER BY `group` SEPARATOR ", ")',
                 'custom_search' => '`group`'
             ));
         }
