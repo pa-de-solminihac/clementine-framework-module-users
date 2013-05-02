@@ -533,8 +533,8 @@ class usersUsersModel extends usersUsersModel_Parent
                 } else {
                     $parent_direct = array();
                 }
-                if ((isset($parent_direct['key']) && isset($user['id_parent']) && $parent_direct['key'] != $user['id_parent'])
-                    || (!isset($parent_direct['key']) && isset($user['id_parent']) && $user['id_parent'])) {
+                if ((isset($parent_direct['id']) && isset($user['id_parent']) && $parent_direct['id'] != $user['id_parent'])
+                    || (!isset($parent_direct['id']) && isset($user['id_parent']) && $user['id_parent'])) {
                     if ($id != $user['id_parent']) {
                         if (!$this->updateParent($id, $user['id_parent'])) {
                             $db->query('ROLLBACK');
