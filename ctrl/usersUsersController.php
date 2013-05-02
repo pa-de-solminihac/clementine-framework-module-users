@@ -566,8 +566,8 @@ class usersUsersController extends usersUsersController_Parent
                 if (count($parents_directs)) {
                     $parent_direct = $ns->array_first($parents_directs);
                 }
-                if ($parent_direct && isset($parent_direct['key']) && $parent_direct['key']) {
-                    $donnees['id_parent'] = $parent_direct['key'];
+                if ($parent_direct && isset($parent_direct['id']) && $parent_direct['id']) {
+                    $donnees['id_parent'] = $parent_direct['id'];
                 } else {
                     // pas de parent, on ne rattache pas
                     $donnees['id_parent'] = 0;
@@ -585,8 +585,8 @@ class usersUsersController extends usersUsersController_Parent
                 if (count($parents_directs)) {
                     $parent_direct = $ns->array_first($parents_directs);
                 }
-                if ($parent_direct && isset($parent_direct['key']) && $parent_direct['key']) {
-                    $donnees['id_parent'] = $parent_direct['key'];
+                if ($parent_direct && isset($parent_direct['id']) && $parent_direct['id']) {
+                    $donnees['id_parent'] = $parent_direct['id'];
                 }
             }
         }
