@@ -307,6 +307,11 @@ class usersUsersController extends usersUsersController_Parent
                 $this->data['error'] = 'Vous devez fournir l\'adresse e-mail utilisée lors de votre inscription.';
                 $user = 0;
             }
+            // verifie que l'utilisateur n'est pas suspendu
+            if (!$user['active']) {
+                $this->data['error'] = 'Ce compte est suspendu.';
+                $user = 0;
+            }
             // securite
             if ($user) {
                 $login = $user['login'];
@@ -327,7 +332,7 @@ class usersUsersController extends usersUsersController_Parent
                                      $titre,
                                      $contenu_texte,
                                      $contenu)) {
-                    $this->data['message'] = 'Un e-mail contenant les instructions à suivre pour renouveler votre mot de passe vous a été envoyé. ';
+                    $this->data['message'] = 'Un e-mail contenant les instructions à suivre pour renouveler votre mot de passe vous a été envoyé. <br />N\'oubliez pas de consulter également votre courier indésirable...';
                 }
             }
         }

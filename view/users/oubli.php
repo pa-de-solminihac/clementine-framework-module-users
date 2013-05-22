@@ -20,7 +20,7 @@ if (isset($data['message'])) {
         </div>
         <br />
 <?php
-}
+} else {
 ?>
         <div>
             <br /><strong>Veuillez remplir le formulaire ci-dessous. </strong><br />
@@ -31,8 +31,8 @@ if (isset($data['message'])) {
         <input type="hidden" id="url_retour" name="url_retour" value="<?php echo (isset($data['url_retour'])) ? $data['url_retour'] : __WWW__; ?>" />
         <label>&nbsp;</label><input type="submit" value="Renouveler" />
         <div class="spacer"></div>
-        <div>
-            <br /><strong>De nouveaux identifiants vous seront envoyés. </strong><br />
-        </div>
+<?php
+}
+?>
     </form>
 </div>
