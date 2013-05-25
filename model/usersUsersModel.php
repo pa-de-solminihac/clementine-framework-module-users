@@ -356,6 +356,17 @@ class usersUsersModel extends usersUsersModel_Parent
         return $this->getParents($id, $max_depth, $min_depth, 'group');
     }
 
+    /**
+     * getParents : renvoie les parents en respectant l'ordre remontant dans la hierarchie (ORDER BY depth ASC)
+     * 
+     * @param mixed $id 
+     * @param int $max_depth 
+     * @param int $min_depth 
+     * @param string $type 
+     * @param mixed $ignore_aliases 
+     * @access public
+     * @return void
+     */
     public function getParents($id, $max_depth = 0, $min_depth = 0, $type = 'user', $ignore_aliases = true)
     {
         $id = (int) $id;
@@ -392,6 +403,44 @@ class usersUsersModel extends usersUsersModel_Parent
             }
         }
         return $parents;
+    }
+
+    /**
+     * getRootParent : renvoie le parent racine, le plus haut de la hiérarchie 
+     * 
+     * @param mixed $id 
+     * @param string $type 
+     * @param mixed $ignore_aliases 
+     * @access public
+     * @return void
+     */
+    public function getRootParent($id, $type = 'user', $ignore_aliases = true)
+    {
+        $id = (int) $id;
+        switch ($type) {
+            case 'user':
+                $table = $this->table_users;
+                break;
+            default:
+                $table = $this->table_groups;
+                break;
+        }
+        $db = $this->getModel('db');
+        $sql = "SELECT `" . $table . "`.*, depth FROM `" . $table . "`
+                    INNER JOIN `" . $table . "_treepaths`
+                        ON `" . $table . "`.id = `" . $table . "_treepaths`.`ancestor`
+                    WHERE `" . $table . "_treepaths`.`descendant` = " . (int) $id . "
+                    AND `" . $table . "_treepaths`.`ancestor` != `" . $table . "_treepaths`.`descendant` ";
+        // ignore les utilisateurs alias
+        if ($ignore_aliases) {
+            $sql .= " AND is_alias_of IS NULL ";
+        }
+        // on renvoie le parent racine
+        $sql .= " ORDER BY depth DESC LIMIT 1 ";
+        if ($stmt = $db->query($sql)) {
+            return $db->fetch_assoc($stmt);
+        }
+        return false;
     }
 
     /**
