@@ -426,11 +426,12 @@ class usersUsersModel extends usersUsersModel_Parent
                 break;
         }
         $db = $this->getModel('db');
-        $sql = "SELECT `" . $table . "`.*, depth FROM `" . $table . "`
-                    INNER JOIN `" . $table . "_treepaths`
-                        ON `" . $table . "`.id = `" . $table . "_treepaths`.`ancestor`
-                    WHERE `" . $table . "_treepaths`.`descendant` = " . (int) $id . "
-                    AND `" . $table . "_treepaths`.`ancestor` != `" . $table . "_treepaths`.`descendant` ";
+        $sql = "
+            SELECT 
+                `" . $table . "`.*, depth FROM `" . $table . "` INNER JOIN
+                `" . $table . "_treepaths` ON `" . $table . "`.id = `" . $table . "_treepaths`.`ancestor`
+            WHERE `" . $table . "_treepaths`.`descendant` = " . (int) $id . " 
+        ";
         // ignore les utilisateurs alias
         if ($ignore_aliases) {
             $sql .= " AND is_alias_of IS NULL ";
