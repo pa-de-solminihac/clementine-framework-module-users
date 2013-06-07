@@ -16,9 +16,11 @@ simulate_users=0
 Comment l'étendre ?
 ---
 
-Le formulaire de creation poste sur users/validuser, qui appelle create_or_update_user(); 
+Le formulaire de creation poste sur l'url ```users/validuser```, qui appelle ```create_or_update_user()```
 
-On peut donc surcharger usersController->create_or_update_user($request, $params = null) :
+**Note** : la création d'un utilisateur est faite avec un minimum d'infos (avec ```addUser()```, qui renvoie juste l'id généré), et suivie d'un appel de ```modUser()``` pour compléter.
+
+On peut donc surcharger ```usersController->create_or_update_user($request, $params = null)``` :
 
 ```php
 
