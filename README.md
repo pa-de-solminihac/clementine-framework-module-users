@@ -4,6 +4,7 @@ Clementine Framework : module Users
 Basé sur CRUD
 
 Options
+---
 ```ini
 [module_users]
 send_account_confirmation=0
@@ -13,6 +14,7 @@ simulate_users=0
 ```
 
 Comment l'étendre ?
+---
 
 Le formulaire de creation poste sur users/validuser, qui appelle create_or_update_user(); 
 
