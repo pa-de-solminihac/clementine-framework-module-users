@@ -1,7 +1,6 @@
 <?php
-$ns = $this->getModel('fonctions');
-$id = $ns->ifGet('int', 'id');
-$isnew = $ns->ifGet('int', 'isnew');
+$id = $request->get('int', 'id');
+$isnew = $request->get('int', 'isnew');
 if ($isnew) {
 ?>
     Votre inscription s'est bien déroulée

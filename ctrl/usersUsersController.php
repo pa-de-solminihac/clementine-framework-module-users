@@ -80,7 +80,7 @@ class usersUsersController extends usersUsersController_Parent
         $ns = $this->getModel('fonctions');
         $this->data['message'] = "Connexion requise";
         // Traitement de la demande de login
-        $url_retour = $ns->ifGet('html', 'url_retour', null, __WWW__, 1, 1);
+        $url_retour = $request->get('html', 'url_retour', null, __WWW__, 1, 1);
         if (!empty($_POST)) {
             // collect the data from the user
             $login    = $ns->strip_tags($request->POST['login']);
@@ -111,8 +111,7 @@ class usersUsersController extends usersUsersController_Parent
         $users = $this->_crud;
         $users->needPrivilege('manage_users');
         // récupère les infos de utilisateur à "usurper"
-        $ns = $this->getModel('fonctions');
-        $id = $ns->ifGet('int', 'id');
+        $id = $request->get('int', 'id');
         $user_to_be = $users->getUser($id);
         // on n'autorise à simuler un utilisateur que si lui-même n'a pas accès à cette fonctionnalité
         if (!$users->hasPrivilege('manage_users', $user_to_be['id'])) {
@@ -234,8 +233,7 @@ class usersUsersController extends usersUsersController_Parent
         if (!isset($params['skip_auth'])) {
             $this->_crud->needPrivilege('manage_users');
         }
-        $ns = $this->getModel('fonctions');
-        $this->data['id'] = $ns->ifGet('int', 'id');
+        $this->data['id'] = $request->get('int', 'id');
         $user = $this->_crud->getUser($this->data['id']);
         $user['password'] = 'password';
         $this->data['user'] = $user;
@@ -251,8 +249,7 @@ class usersUsersController extends usersUsersController_Parent
     public function addAction($request, $params = null)
     {
         $this->_crud->needAuth();
-        $ns = $this->getModel('fonctions');
-        $this->data['id'] = $ns->ifGet('int', 'id');
+        $this->data['id'] = $request->get('int', 'id');
         $this->data['user'] = $this->_crud->getUser($this->data['id']);
     }
 
@@ -264,11 +261,10 @@ class usersUsersController extends usersUsersController_Parent
      */
     public function deleteAction($request, $params = null)
     {
-        $ns = $this->getModel('fonctions');
         if (isset($params['user_id'])) {
             $id = $params['user_id'];
         } else {
-            $id = $ns->ifGet('int', 'id');
+            $id = $request->get('int', 'id');
         }
         $users = $this->_crud;
         $auth = $users->needAuth();
@@ -347,8 +343,8 @@ class usersUsersController extends usersUsersController_Parent
     public function renewAction($request, $titre = null, $params = null)
     {
         $ns = $this->getModel('fonctions');
-        $code = $ns->ifGet('string', 'c');
-        $login = base64_decode($ns->ifGet('string', 'l'));
+        $code = $request->get('string', 'c');
+        $login = base64_decode($request->get('string', 'l'));
         if ($ns->est_email($login)) {
             $user = $this->_crud->getUserByLogin($login);
             if ($user) {
@@ -493,7 +489,7 @@ class usersUsersController extends usersUsersController_Parent
         if ($users->hasPrivilege('manage_users')) {
             $url_retour = __WWW__ . '/users/index';
         } else {
-            $id = $ns->ifGet('int', 'id');
+            $id = $request->get('int', 'id');
             $this->data['user'] = $users->getUser($id);
         }
         if (isset($params['url_retour'])) {
@@ -538,7 +534,7 @@ class usersUsersController extends usersUsersController_Parent
         $err = $this->getHelper('errors');
         $users = $this->_crud;
         // recupere les parametres
-        $id = $ns->ifPost('int', 'id');
+        $id = $request->post('int', 'id');
         // recuperation des donnees et assainissement
         $donnees = $users->sanitize($request->POST);
         // la modification du login requiert le privilege manage_users (ou un bypass dans $params)

@@ -1,19 +1,18 @@
 <?php
-$ns = $this->getModel('fonctions');
 $user = array();
 if (isset($data['user'])) {
     $user = $data['user'];
 }
 ?>
         <input type="hidden" name="id" value="<?php
-    if ($ns->ifGet('int', 'id')) {
-        echo $ns->ifGet('int', 'id');
+    if ($request->get('int', 'id')) {
+        echo $request->get('int', 'id');
     } else {
         echo '0';
     }
 ?>" />
         <input type="hidden" name="mdpOK" value="<?php
-if ($user['password']) {
+if (!empty($user['password'])) {
     echo $user['password'];
 } else {
     echo '0';

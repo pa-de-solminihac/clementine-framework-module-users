@@ -117,8 +117,7 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function getUrlLogin ()
     {
-        $ns = $this->getModel('fonctions');
-        $url_retour = urldecode($ns->ifPost('html', 'url_retour', null, $_SERVER['REQUEST_URI'], 1, 1));
+        $url_retour = urldecode($request->post('html', 'url_retour', null, $_SERVER['REQUEST_URI'], 1, 1));
         return __WWW__ . '/users/login?url_retour=' . urlencode($url_retour);
     }
 
