@@ -80,7 +80,7 @@ class usersUsersController extends usersUsersController_Parent
         $ns = $this->getModel('fonctions');
         $this->data['message'] = "Connexion requise";
         // Traitement de la demande de login
-        $url_retour = $request->get('html', 'url_retour', null, __WWW__, 1, 1);
+        $url_retour = $this->getModel('fonctions')->ifGet('html', 'url_retour', null, __WWW__, 1, 1);
         if (!empty($_POST)) {
             // collect the data from the user
             $login    = $ns->strip_tags($request->POST['login']);
