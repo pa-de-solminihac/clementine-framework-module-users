@@ -314,7 +314,7 @@ class usersUsersModel extends usersUsersModel_Parent
         $id_group = (int)$id_group;
         $db = $this->getModel('db');
         $sql = "
-            SELECT `" . $this->table_users . "`.`id`, `login`
+            SELECT `" . $this->table_users . "`.*
             FROM `" . $this->table_users . "`
                 LEFT JOIN `" . $this->table_users_has_groups . "`
                     ON `user_id` = `" . $this->table_users . "`.`id`
@@ -324,8 +324,8 @@ class usersUsersModel extends usersUsersModel_Parent
             ORDER BY login ";
         $stmt = $db->query($sql);
         $users = array();
-        for (; $res = $db->fetch_array($stmt); true) {
-            $users[$res['id']]['login'] = $res['login'];
+        for (; $res = $db->fetch_assoc($stmt); true) {
+            $users[$res['id']] = $res;
         }
         return $users;
     }
