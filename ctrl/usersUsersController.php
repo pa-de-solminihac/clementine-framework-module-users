@@ -137,7 +137,11 @@ class usersUsersController extends usersUsersController_Parent
             }
             $previous_auth = $this->_crud->getAuth();
         }
+        $module_name = $this->getCurrentModule();
+        $err = $this->getHelper('errors');
+        $err->flush($module_name);
         $auth = $this->_crud->tryAuth($login, $password, $params);
+        $auth_errors = $err->get($module_name, 'failed_auth');
         // recrée la session si on est en train de simuler un utilisateur
         if ($auth && isset($params['bypass_login']) && $params['bypass_login']) {
             $this->logout();
@@ -161,7 +165,10 @@ class usersUsersController extends usersUsersController_Parent
             if (isset($_SESSION['auth'])) {
                 unset($_SESSION['auth']);
             }
-            $this->data['message'] = 'Echec de l\'identification.';
+            if ($auth_errors) {
+                $this->data['errors'] = $auth_errors;
+                $this->data['message'] = implode('<br />', $auth_errors);
+            }
             // header 403 puisqu'accès refusé
             header('HTTP/1.0 403 Forbidden');
         }

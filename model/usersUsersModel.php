@@ -71,6 +71,8 @@ class usersUsersModel extends usersUsersModel_Parent
     {
         // recupere le grain de sel pour hasher le mot de passe
         $db = $this->getModel('db');
+        $err = $this->getHelper('errors');
+        $module_name = $this->getCurrentModule();
         $sql = '
             SELECT salt
             FROM ' . $this->table_users . '
@@ -102,6 +104,7 @@ class usersUsersModel extends usersUsersModel_Parent
                     $parents = $this->getParents($result['id']);
                     foreach ($parents as $parent) {
                         if (!$parent['active']) {
+                            $err->register_err('failed_auth', 'login_error_parent', Clementine::$config['module_users']['login_error_parent'], $module_name);
                             return false;
                         }
                     }
@@ -117,9 +120,12 @@ class usersUsersModel extends usersUsersModel_Parent
                 }
                 return $auth;
             } else {
+                $err->register_err('failed_auth', 'login_error_password', Clementine::$config['module_users']['login_error_password'], $module_name);
                 return false;
             }
         }
+        $err->register_err('failed_auth', 'login_error_account', Clementine::$config['module_users']['login_error_account'], $module_name);
+        return false;
     }
 
     /**
@@ -221,7 +227,7 @@ class usersUsersModel extends usersUsersModel_Parent
         $privileges_granted = $this->getPrivileges($specific_uid);
         $has_privilege = $this->checkPrivileges($privilege, $privileges_granted);
         if (!$has_privilege && $needauth) {
-            $this->getModel('fonctions')->redirect($this->getModel('users')->getUrlLogin());
+            $this->getModel('fonctions')->redirect($this->getUrlLogin());
         }
         return $has_privilege;
     }
