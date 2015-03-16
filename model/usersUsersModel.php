@@ -14,6 +14,7 @@ class usersUsersModel extends usersUsersModel_Parent
     public $table_users                 = 'clementine_users';
     public $table_users_treepaths       = 'clementine_users_treepaths';
     public $table_users_has_groups      = 'clementine_users_has_groups';
+    public $table_users_has_privileges  = 'clementine_users_has_privileges';
     public $table_groups                = 'clementine_users_groups';
     public $table_groups_treepaths      = 'clementine_users_groups_treepaths';
     public $table_groups_has_privileges = 'clementine_users_groups_has_privileges';
@@ -136,7 +137,11 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function getUrlLogin()
     {
-        $url_retour = urldecode($this->getModel('fonctions')->ifPost('html', 'url_retour', null, $_SERVER['REQUEST_URI'], 1, 1));
+        $url_retour = urldecode($this->getModel('fonctions')->ifPost('html', 'url_retour', null, str_replace(__BASE__, __WWW__, $_SERVER['REQUEST_URI']), 1, 1));
+        // pour éviter de tourner en boucle sur la page de déconnexion
+        if ($url_retour == $this->getUrlLogout()) {
+            $url_retour = __WWW__;
+        }
         return __WWW__ . '/users/login?url_retour=' . urlencode($url_retour);
     }
 
@@ -190,14 +195,21 @@ class usersUsersModel extends usersUsersModel_Parent
         }
         // pas besoin de passer par toutes les tables, on peut raccourcir les traitements en joignant seulement les tables intermediaires
         $db = $this->getModel('db');
-        $sql = '
-            SELECT `' . $this->table_privileges . '`.`privilege`
-            FROM `' . $this->table_privileges . '`
-                INNER JOIN `' . $this->table_groups_has_privileges . '`
-                    ON `' . $this->table_groups_has_privileges . '`.`privilege_id` = `' . $this->table_privileges . '`.`id`
-                INNER JOIN `' . $this->table_users_has_groups . '`
-                    ON `' . $this->table_users_has_groups . '`.`group_id` = `' . $this->table_groups_has_privileges . '`.`group_id`
-            WHERE `' . $this->table_users_has_groups . '`.`user_id` = \'' . (int)$user_id . '\' ';
+        $sql = "(
+            SELECT `{$this->table_privileges}`.`privilege`
+            FROM `{$this->table_privileges}`
+                INNER JOIN `{$this->table_groups_has_privileges}`
+                    ON `{$this->table_groups_has_privileges}`.`privilege_id` = `{$this->table_privileges}`.`id`
+                INNER JOIN `{$this->table_users_has_groups}`
+                    ON `{$this->table_users_has_groups}`.`group_id` = `{$this->table_groups_has_privileges}`.`group_id`
+            WHERE `{$this->table_users_has_groups}`.`user_id` = '" . (int)$user_id . "' 
+        ) UNION (
+            SELECT `{$this->table_privileges}`.`privilege`
+            FROM `{$this->table_privileges}`
+                INNER JOIN `{$this->table_users_has_privileges}`
+                    ON `{$this->table_users_has_privileges}`.`privilege_id` = `{$this->table_privileges}`.`id`
+            WHERE `{$this->table_users_has_privileges}`.`user_id` = '" . (int)$user_id . "' 
+        ) ";
         $privileges = array();
         if ($stmt = $db->query($sql)) {
             for (true; $res = $db->fetch_assoc($stmt); true) {
@@ -210,7 +222,16 @@ class usersUsersModel extends usersUsersModel_Parent
     /**
      * needPrivilege : renvoie vrai si l'utilisateur dispose du privilege $privilege
      *
-     * @param mixed $privilege : nom du privilege requis
+     * @param mixed $privilege : nom du privilege requis, ou tableau représentant plusieurs privilèges : array(
+     *     'privilege1' => true,
+     *     'privilege2' => array(
+     *         'privilege3' => true,
+     *         'privilege4' => true
+     *     )
+     * )
+     * le tableau ci-dessus sera traduit ainsi : privilege1 || privilege2 && (privilege3 || privilege4)
+     * @param mixed $needauth : 
+     * @param mixed $specific_uid : 
      * @access public
      * @return void
      */
@@ -242,6 +263,25 @@ class usersUsersModel extends usersUsersModel_Parent
     public function hasPrivilege($privilege, $specific_uid = null)
     {
         return $this->needPrivilege($privilege, false, $specific_uid);
+    }
+
+    /**
+     * addPrivilege : ajoute un privilège à la table table_privileges
+     *
+     * @param mixed $privilege : 
+     * @access public
+     * @return void
+     */
+    public function addPrivilege($privilege)
+    {
+        $db = $this->getModel('db');
+        $sql = "
+            INSERT IGNORE INTO {$this->table_privileges} (
+                `privilege`
+            ) VALUES (
+                '" . $db->escape_string($privilege) . "'
+            ) ";
+        return $db->query($sql);
     }
 
     /**
@@ -362,7 +402,7 @@ class usersUsersModel extends usersUsersModel_Parent
     }
 
     /**
-     * getGroup : récupère le correspondant à un id
+     * getGroup : récupère le groupe correspondant à un id
      *
      * @param mixed $id
      * @access public
@@ -580,120 +620,133 @@ class usersUsersModel extends usersUsersModel_Parent
         return $user;
     }
 
-    /**
-     * addUser : cree un nouvel user et renvoie son id
-     *
-     * @param mixed $login
-     * @access public
-     * @return void
-     */
-    public function addUser($login, $id_parent = null)
+    public function create($insecure_values, $params = null)
     {
-        // insertion du user en 2 temps : insertion minimaliste, et update du user dans un 2e temps (moins performant mais factorise le code)
-        $user = $this->getUserByLogin($login);
-        if (!$user) {
-            $db = $this->getModel('db');
+        $user = $this->getUserByLogin($insecure_values[$this->table_users . '-login']);
+        if ($user) {
+            return false;
+        }
+        $db = $this->getModel('db');
+        if (empty($params['dont_start_transaction'])) {
             $db->query('START TRANSACTION');
-            $date = date('Y-m-d H:i:s');
-            $sql = "INSERT INTO " . $this->table_users . " (
-                `login`, `date_creation`)
-                VALUES (
-                    '" . $db->escape_string($login) . "', '" . $date . "')";
-            if (!$stmt = $db->query($sql)) {
-                $db->query('ROLLBACK');
-                return false;
+        }
+        // force la date de création
+        $date = date('Y-m-d H:i:s');
+        $insecure_values[$this->table_users . '-date_modification'] = $date;
+        $insecure_values[$this->table_users . '-date_creation'] = $date;
+        // parent:: but dont start transaction
+        $fake_params = $params;
+        $fake_params['dont_start_transaction'] = true;
+        if (!$ret = parent::create($insecure_values, $fake_params)) {
+            $db->query('ROLLBACK');
+            return false;
+        }
+        $last_insert_id = (int)$db->insert_id();
+        $sql = "
+            INSERT INTO {$this->table_users_treepaths} (
+                `ancestor`,
+                `descendant`,
+                `depth`
+            ) VALUES (
+                '$last_insert_id',
+                '$last_insert_id',
+                0
+            )";
+        if (!$stmt = $db->query($sql)) {
+            $db->query('ROLLBACK');
+            return false;
+        }
+        // on rattache l'utilisateur si c'est une création par un utilisateur connecté
+        $auth = $this->getAuth();
+        if (isset($auth['login']) && strlen($auth['login']) && !isset($user['id'])) {
+            // si c'est un adjoint on le rattache au meme parent que le compte maitre
+            if (isset($params['adjoint']) && $params['adjoint']) {
+                $parents_directs = $users->getParents($auth['id'], 1, 1);
+                $parent_direct = false;
+                if (count($parents_directs)) {
+                    $parent_direct = $ns->array_first($parents_directs);
+                }
+                if ($parent_direct && isset($parent_direct['id']) && $parent_direct['id']) {
+                    $id_parent = $parent_direct['id'];
+                } else {
+                    // pas de parent, on ne rattache pas
+                    $id_parent = 0;
+                }
+            } else {
+                $id_parent = $auth['id'];
             }
-            $last_insert_id = $db->insert_id();
-            $sql = "INSERT INTO " . $this->table_users_treepaths . " (`ancestor`, `descendant`, `depth`) VALUES ('" . (int)$last_insert_id . "', '" . (int)$last_insert_id . "', 0)";
-            if (!$stmt = $db->query($sql)) {
-                $db->query('ROLLBACK');
-                return false;
-            }
-            if ($id_parent) {
-                if (!$this->updateParent($last_insert_id, $id_parent)) {
-                    $db->query('ROLLBACK');
-                    return false;
+        } else {
+            if (!isset($user['id'])) {
+                $id_parent = 0;
+            } else {
+                // en cas de modif, on garde l'id parent existant
+                $parents_directs = $users->getParents($user['id'], 1, 1);
+                $parent_direct = false;
+                if (count($parents_directs)) {
+                    $parent_direct = $ns->array_first($parents_directs);
+                }
+                if ($parent_direct && isset($parent_direct['id']) && $parent_direct['id']) {
+                    $id_parent = $parent_direct['id'];
                 }
             }
-            $db->query('COMMIT');
-            return $last_insert_id;
         }
-        return false;
+        if ($id_parent) {
+            if (!$this->updateParent($last_insert_id, $id_parent)) {
+                $db->query('ROLLBACK');
+                return false;
+            }
+        }
+        if (!empty($params['default_group'])) {
+            if ($group = $this->getGroupByName($params['default_group'])) {
+                $this->addUserToGroup($last_insert_id, $group['id']);
+            }
+        }
+        // on fait un update de l'utilisateur pour finaliser la création
+        $insecure_primary_key = array(
+            $this->table_users . '-id' => $last_insert_id
+        );
+        $this->update($insecure_values, $insecure_primary_key, $params);
+        if (empty($params['dont_start_transaction'])) {
+            $db->query('COMMIT');
+        }
+        return $ret;
     }
 
-    /**
-     * modUser : modifie un user avec le tableau associatif passe en parametre, et change la date de modification et le code_confirmation
-     *
-     * @param mixed $id
-     * @param mixed $donnees
-     * @access public
-     * @return void
-     */
-    public function modUser($id, $donnees)
+    public function update($insecure_values, $insecure_primary_key = null, $params = null)
     {
-        $id = (int)$id;
         $ns = $this->getModel('fonctions');
+        $id = (int)$insecure_primary_key[$this->table_users . '-id'];
         $user = $this->getUser($id);
-        if ($user) {
-            // ecrase les donnees chargees avec celles mises à jour
-            foreach ($donnees as $key => $val) {
-                $user[$key] = $val;
-            }
-            if ($user) {
-                $change_pass = 0;
-                if (isset($donnees['password']) && $donnees['password'] && $donnees['password'] != 'password') {
-                    $change_pass = 1;
-                }
-                if ($change_pass) {
-                    // genere un grain de sel aleatoire
-                    $salt = hash('sha256', (microtime() . rand(0, getrandmax())));
-                    // hash le password avec le grain de sel
-                    $user['password'] = hash('sha256', $salt . $user['password']);
-                }
-                // genere un code de confirmation aleatoire
-                $code_confirmation = hash('sha256', (microtime() . rand(0, getrandmax())));
-                // met a jour les champs en base de donnees
-                $db = $this->getModel('db');
-                $db->query('START TRANSACTION');
-                $sql = "UPDATE " . $this->table_users . "
-                            SET `login`             = '" . $db->escape_string($user['login']) . "',";
-                if ($change_pass) {
-                    $sql.= "
-                                    `password`          = '" . $db->escape_string($user['password']) . "',
-                                    `salt`              = '" . $salt . "',";
-                }
-                if ($user['is_alias_of']) {
-                    $sql.= "
-                                `is_alias_of` = '" . $db->escape_string($user['is_alias_of']) . "', ";
-                }
-                $sql.= "       `code_confirmation` = '" . $code_confirmation . "',
-                                `date_modification` = '" . $db->escape_string($user['date_modification']) . "',
-                                `active`            = '" . $db->escape_string($user['active']) . "'
-                          WHERE `id` = '$id'
-                          LIMIT 1 ";
-                if (!$stmt = $db->query($sql)) {
-                    $db->query('ROLLBACK');
-                    return false;
-                }
-                $parents_directs = $this->getParents($id, 1, 1);
-                if ($parents_directs) {
-                    $parent_direct = $ns->array_first($parents_directs);
-                } else {
-                    $parent_direct = array();
-                }
-                if ((isset($parent_direct['id']) && isset($user['id_parent']) && $parent_direct['id'] != $user['id_parent']) || (!isset($parent_direct['id']) && isset($user['id_parent']) && $user['id_parent'])) {
-                    if ($id != $user['id_parent']) {
-                        if (!$this->updateParent($id, $user['id_parent'])) {
-                            $db->query('ROLLBACK');
-                            return false;
-                        }
-                    }
-                }
-                $db->query('COMMIT');
-                return $user;
-            }
+        if (!$user) {
+            return false;
         }
-        return false;
+        // force la date de création
+        $date = date('Y-m-d H:i:s');
+        $insecure_values[$this->table_users . '-date_modification'] = $date;
+        if (!empty($insecure_values['mot_de_passe']) && $insecure_values['mot_de_passe'] != 'password') {
+            // genere un grain de sel aleatoire
+            $insecure_values[$this->table_users . '-salt'] = hash('sha256', (microtime() . rand(0, getrandmax())));
+            // hash le password avec le grain de sel
+            $insecure_values[$this->table_users . '-password'] = hash('sha256', $insecure_values[$this->table_users . '-salt'] . $insecure_values['mot_de_passe']);
+        }
+        // genere un code de confirmation aleatoire
+        $insecure_values[$this->table_users . '-code_confirmation'] = hash('sha256', (microtime() . rand(0, getrandmax())));
+        // met a jour les champs en base de donnees
+        $db = $this->getModel('db');
+        if (empty($params['dont_start_transaction'])) {
+            $db->query('START TRANSACTION');
+        }
+        // parent:: but dont start transaction
+        $fake_params = $params;
+        $fake_params['dont_start_transaction'] = true;
+        if (!$ret = parent::update($insecure_values, $insecure_primary_key, $fake_params)) {
+            $db->query('ROLLBACK');
+            return false;
+        }
+        if (empty($params['dont_start_transaction'])) {
+            $db->query('COMMIT');
+        }
+        return $ret;
     }
 
     /**
@@ -747,21 +800,47 @@ class usersUsersModel extends usersUsersModel_Parent
     }
 
     /**
-     * addUserToGroup : Met l'utilisateur dans un groupe
+     * addUserToGroup : ajoute un utilisateur à un groupe
      *
      * @param mixed $id
-     * @param mixed $groupe
+     * @param mixed $group_id
      * @access public
      * @return void
      */
-    public function addUserToGroup($id, $group)
+    public function addUserToGroup($id, $group_id)
     {
         $id = (int)$id;
+        $group_id = (int)$group_id;
         $user = $this->getUser($id);
         if ($user) {
             $db = $this->getModel('db');
             $sql = "INSERT INTO `" . $this->table_users_has_groups . "` (user_id, group_id)
-                    VALUES (" . $id . ", " . $group . ")";
+                    VALUES ('" . $id . "', '" . $group_id . "')";
+            return $db->query($sql);
+        }
+        return false;
+    }
+
+    /**
+     * delUserFromGroup : enlève un utilisateur d'un groupe
+     *
+     * @author Julien Malandain <julien@quai13.com>
+     * @param mixed $id
+     * @param mixed $group_id
+     * @access public
+     * @return void
+     */
+    public function delUserFromGroup($id, $group_id)
+    {
+        $id = (int)$id;
+        $group_id = (int)$group_id;
+        $user = $this->getUser($id);
+        if ($user) {
+            $db = $this->getModel('db');
+            $sql = "DELETE FROM `" . $this->table_users_has_groups . "`
+                WHERE `user_id` = '" . $id . "'
+                AND `group_id` = '" . $group_id . "'
+                LIMIT 1 ";
             return $db->query($sql);
         }
         return false;
@@ -796,13 +875,15 @@ class usersUsersModel extends usersUsersModel_Parent
      * @access public
      * @return void
      */
-    public function addGroup($name, $id_parent = null)
+    public function addGroup($name, $id_parent = null, $params = null)
     {
         // insertion du user en 2 temps : insertion minimaliste, et update du user dans un 2e temps (moins performant mais factorise le code)
         $group = $this->getGroupByName($name);
         if (!$group) {
             $db = $this->getModel('db');
-            $db->query('START TRANSACTION');
+            if (empty($params['dont_start_transaction'])) {
+                $db->query('START TRANSACTION');
+            }
             $sql = "INSERT INTO `" . $this->table_groups . "` (`id`, `group`) VALUES (NULL, '" . $db->escape_string($name) . "')";
             if (!$stmt = $db->query($sql)) {
                 $db->query('ROLLBACK');
@@ -820,7 +901,9 @@ class usersUsersModel extends usersUsersModel_Parent
                     return false;
                 }
             }
-            $db->query('COMMIT');
+            if (empty($params['dont_start_transaction'])) {
+                $db->query('COMMIT');
+            }
             return $last_insert_id;
         }
         return false;
@@ -834,7 +917,7 @@ class usersUsersModel extends usersUsersModel_Parent
      * @access public
      * @return void
      */
-    public function modGroup($id, $donnees)
+    public function modGroup($id, $donnees, $params = null)
     {
         $id = (int)$id;
         $group = $this->getGroup($id);
@@ -846,7 +929,9 @@ class usersUsersModel extends usersUsersModel_Parent
             }
             if ($group) {
                 $db = $this->getModel('db');
-                $db->query('START TRANSACTION');
+                if (empty($params['dont_start_transaction'])) {
+                    $db->query('START TRANSACTION');
+                }
                 $sql = "UPDATE " . $this->table_groups . "
                             SET `group`             = '" . $db->escape_string($group['group']) . "',
                           WHERE `id` = '" . (int)$id . "'
@@ -858,7 +943,9 @@ class usersUsersModel extends usersUsersModel_Parent
                 if ($group_original['id_parent'] != $group['id_parent']) {
                     $this->updateGroupParent($id, $group['id_parent']);
                 }
-                $db->query('COMMIT');
+                if (empty($params['dont_start_transaction'])) {
+                    $db->query('COMMIT');
+                }
                 return $group;
             }
         }
@@ -942,48 +1029,6 @@ class usersUsersModel extends usersUsersModel_Parent
             $secure_array['login'] = $ns->strip_tags($insecure_array['login']);
         }
         return $secure_array;
-    }
-
-    /**
-     * validate : verifie que les donnees conviennent et renvoie un tableau contenant les erreurs
-     *
-     * @param mixed $donnees
-     * @access public
-     * @return void
-     */
-    public function validate($donnees, $id = null)
-    {
-        $ns = $this->getModel('fonctions');
-        $err = $this->getHelper('errors');
-        if (!isset($donnees['login']) || !strlen($donnees['login']) || !$ns->est_email($donnees['login'])) {
-            $err->register_err('missing_fields', 'mail', '- adresse e-mail' . "\r\n");
-        }
-        if (!$id) {
-            if (!isset($donnees['password'])) {
-                $err->register_err('missing_fields', 'password', '- mot de passe' . "\r\n");
-            }
-            if (!isset($donnees['password_conf'])) {
-                $err->register_err('missing_fields', 'password_conf', '- confirmation du mot de passe' . "\r\n");
-            }
-        }
-        if (isset($donnees['password'])) {
-            if (!$donnees['password'] || $donnees['password'] == 'password') {
-                $err->register_err('missing_fields', 'password', '- mot de passe' . "\r\n");
-            }
-            if (!isset($donnees['password_conf'])) {
-                $err->register_err('missing_fields', 'password_conf', '- confirmation du mot de passe' . "\r\n");
-            } else {
-                if ($donnees['password'] != $donnees['password_conf']) {
-                    $err->register_err('missing_fields', 'password', '- mot de passe' . "\r\n");
-                    $err->register_err('missing_fields', 'password_conf', '- confirmation du mot de passe' . "\r\n");
-                    $err->register_err('password', 'password_mismatch', 'Les champs mot de passe et confirmation du mot de passe sont différents' . "\r\n");
-                }
-            }
-        } else {
-            if (isset($donnees['password_conf'])) {
-                $err->register_err('missing_fields', 'password_conf', '- confirmation du mot de passe' . "\r\n");
-            }
-        }
     }
 
     public function checkPrivileges($required_privileges_tree, $my_privileges = array())

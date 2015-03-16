@@ -1,38 +1,59 @@
-<div class="form_users_oubli">
-    <form action="<?php echo __WWW__; ?>/users/oubli" method="post">
+<?php
+$this->getBlock('design/header', $data, $request);
+$current_url = $request->EQUIV[$request->LANG];
+?>
+<div class="container form_users_oubli">
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <div class="login-panel panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                    Veuillez remplir le formulaire ci-dessous. 
+                    </h3>
+                </div>
+                <div class="panel-body">
 <?php
 if (isset($data['error'])) {
 ?>
-        <div class="error">
+        <p class="error alert alert-danger">
 <?php
     echo $data['error'];
 ?>
-        </div>
-        <br />
+        </p>
 <?php
 }
 if (isset($data['message'])) {
 ?>
-        <div class="message">
+        <p class="info alert alert-success">
 <?php
     echo $data['message'];
 ?>
-        </div>
-        <br />
+        </p>
+        <p>
+            <a href="<?php echo __WWW__; ?>/">
+                <i class="glyphicon glyphicon-arrow-left"></i>
+                revenir à l'accueil
+            </a>
+        </p>
 <?php
 } else {
 ?>
-        <div>
-            <br /><strong>Veuillez remplir le formulaire ci-dessous. </strong><br />
-        </div>
-        <div class="spacer"></div>
-        <label>Votre adresse e-mail</label>
-        <input type="text" id="login" name="login" value="" />
-        <input type="hidden" id="url_retour" name="url_retour" value="<?php echo (isset($data['url_retour'])) ? $data['url_retour'] : __WWW__; ?>" />
-        <label>&nbsp;</label><input type="submit" value="Renouveler" />
-        <div class="spacer"></div>
+                    <form role="form" action="<?php echo __WWW__; ?>/users/oubli" method="post">
+                        <fieldset>
+                            <div class="form-group">
+                                <input class="form-control" placeholder="Adresse e-mail" id="login" name="login" type="text" autofocus tabindex="1">
+                            </div>
+                            <input type="hidden" id="url_retour" name="url_retour" value="<?php echo (isset($data['url_retour'])) ? $data['url_retour'] : __WWW__; ?>" />
+                            <input type="submit" class="btn btn-lg btn-success btn-block" value="Renouveler mon mot de passe" />
+                        </fieldset>
+                    </form>
 <?php
 }
 ?>
-    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+<?php
+$this->getBlock('design/footer', $data, $request);
