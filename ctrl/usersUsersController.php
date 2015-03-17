@@ -683,8 +683,9 @@ class usersUsersController extends usersUsersController_Parent
     {
         $ret = parent::alter_values_create_or_update($request, $params);
         if (($this->data['formtype'] == 'update')) {
-            $this->setDefaultValue('mot_de_passe', 'password');
-            $this->setDefaultValue('confirmation_du_mot_de_passe', 'password');
+            $params['force_default_value'] = true;
+            $this->setDefaultValue('mot_de_passe', 'password', $params);
+            $this->setDefaultValue('confirmation_du_mot_de_passe', 'password', $params);
         }
         return $ret;
     }
