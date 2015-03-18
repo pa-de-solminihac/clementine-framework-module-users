@@ -1,4 +1,5 @@
 <?php
+$ns = $this->getModel('fonctions');
 $users = $this->getModel('users');
 if ($auth = $this->getModel('users')->getAuth()) {
     $toplinks = array (
@@ -32,6 +33,6 @@ if ($auth = $this->getModel('users')->getAuth()) {
 if (empty($data['navbar-toplinks'])) {
     $data['navbar-toplinks'] = $toplinks;
 } else {
-    $data['navbar-toplinks'] = array_merge($data['navbar-toplinks'], $toplinks);
+    $data['navbar-toplinks'] = $ns->array_override($toplinks, $data['navbar-toplinks']);
 }
 $this->getParentBlock($data);

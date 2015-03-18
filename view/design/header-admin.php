@@ -1,4 +1,5 @@
 <?php
+$ns = $this->getModel('fonctions');
 $users = $this->getModel('users');
 $auth = $users->getAuth();
 $toplinks = array (
@@ -13,7 +14,7 @@ $toplinks = array (
 if (empty($data['navbar-toplinks'])) {
     $data['navbar-toplinks'] = $toplinks;
 } else {
-    $data['navbar-toplinks'] = array_merge($data['navbar-toplinks'], $toplinks);
+    $data['navbar-toplinks'] = $ns->array_override($toplinks, $data['navbar-toplinks']);
 }
 // lien admin
 if ($users->hasPrivilege('manage_users')) {
@@ -33,7 +34,7 @@ if ($users->hasPrivilege('manage_users')) {
     if (empty($data['navbar-sidebar'])) {
         $data['navbar-sidebar'] = $sidebar;
     } else {
-        $data['navbar-sidebar'] = array_merge($data['navbar-sidebar'], $sidebar);
+        $data['navbar-sidebar'] = $ns->array_override($sidebar, $data['navbar-sidebar']);
     }
 }
 $this->getParentBlock($data);

@@ -1,4 +1,5 @@
 <?php
+$ns = $this->getModel('fonctions');
 $users = $this->getModel('users');
 $dropdown = array();
 $auth = $users->getAuth();
@@ -29,7 +30,7 @@ if ($auth) {
     if (empty($data['navbar-toplinks-dropdown'])) {
         $data['navbar-toplinks-dropdown'] = $dropdown;
     } else {
-        $data['navbar-toplinks-dropdown'] = array_merge($data['navbar-toplinks-dropdown'], $dropdown);
+        $data['navbar-toplinks-dropdown'] = $ns->array_override($dropdown, $data['navbar-toplinks-dropdown']);
     }
     $this->getBlock('design/menu-li', $data['navbar-toplinks-dropdown'], $request);
 ?>

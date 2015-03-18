@@ -12,11 +12,12 @@ if (!empty($data['alldata']['simulate_users'])) {
             'icon' => 'glyphicon glyphicon-sunglasses',
             'label' => 'Simuler',
         ),
+        'delbutton' => 'getParent',
     );
     if (empty($data['crud-sections'])) {
         $data['crud-sections'] = $sections;
     } else {
-        $data['crud-sections'] = array_merge($data['crud-sections'], $sections);
+        $data['crud-sections'] = $ns->array_override($sections, $data['crud-sections']);
     }
 }
 $this->getParentBlock($data, $request);
