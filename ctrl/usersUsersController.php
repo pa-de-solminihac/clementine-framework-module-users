@@ -436,7 +436,8 @@ class usersUsersController extends usersUsersController_Parent
             $params['url_retour_parameters'] = array_merge($params['url_retour_parameters'], $url_retour_parameters);
         }
         $ret = parent::createAction($request, $params);
-        if (!empty($created_user_id = $this->data['values'][0][$this->_crud->table_users . '.id']) && $created_user = $this->_crud->getUser($created_user_id)) {
+        $created_user_id = $this->data['values'][0][$this->_crud->table_users . '.id'];
+        if (!empty($created_user_id) && $created_user = $this->_crud->getUser($created_user_id)) {
             // on envoie les mails
             $sendmail_data = array(
                 'user' => $created_user,
