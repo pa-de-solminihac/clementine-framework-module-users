@@ -137,12 +137,16 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function getUrlLogin()
     {
-        $url_retour = urldecode($this->getModel('fonctions')->ifPost('html', 'url_retour', null, str_replace(__BASE__, __WWW__, $_SERVER['REQUEST_URI']), 1, 1));
+        $ns = $this->getModel('fonctions');
+        $url_retour = urldecode($this->getModel('fonctions')->ifPost('html', 'url_retour', null, $_SERVER['REQUEST_URI'], 1, 1));
         // pour éviter de tourner en boucle sur la page de déconnexion
-        if ($url_retour == $this->getUrlLogout()) {
+        $url_logout_relative = str_replace(__WWW__, __BASE__, $this->getUrlLogout());
+        $url_retour_relative = str_replace(__WWW__, __BASE__, $url_retour);
+        if ($url_retour_relative == $url_logout_relative) {
             $url_retour = __WWW__;
         }
-        return __WWW__ . '/users/login?url_retour=' . urlencode($url_retour);
+        $url_login = $ns->mod_param(__WWW__ . '/users/login', 'url_retour', $url_retour);
+        return $url_login;
     }
 
     /**
@@ -622,6 +626,7 @@ class usersUsersModel extends usersUsersModel_Parent
 
     public function create($insecure_values, $params = null)
     {
+        $ns = $this->getModel('fonctions');
         $user = $this->getUserByLogin($insecure_values[$this->table_users . '-login']);
         if ($user) {
             return false;
