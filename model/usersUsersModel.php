@@ -642,11 +642,11 @@ class usersUsersModel extends usersUsersModel_Parent
         // parent:: but dont start transaction
         $fake_params = $params;
         $fake_params['dont_start_transaction'] = true;
-        if (!$ret = parent::create($insecure_values, $fake_params)) {
+        if (!$last_insert_ids = parent::create($insecure_values, $fake_params)) {
             $db->query('ROLLBACK');
             return false;
         }
-        $last_insert_id = (int)$db->insert_id();
+        $last_insert_id = $last_insert_ids[$this->table_users]['id'];
         $sql = "
             INSERT INTO {$this->table_users_treepaths} (
                 `ancestor`,
@@ -714,7 +714,7 @@ class usersUsersModel extends usersUsersModel_Parent
         if (empty($params['dont_start_transaction'])) {
             $db->query('COMMIT');
         }
-        return $ret;
+        return $last_insert_ids;
     }
 
     public function update($insecure_values, $insecure_primary_key = null, $params = null)
