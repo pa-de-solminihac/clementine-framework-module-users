@@ -435,30 +435,36 @@ class usersUsersController extends usersUsersController_Parent
         } else {
             $params['url_retour_parameters'] = array_merge($params['url_retour_parameters'], $url_retour_parameters);
         }
-        $ret = parent::createAction($request, $params);
-        $created_user_id = $this->data['values'][0][$this->_crud->table_users . '.id'];
-        if (!empty($created_user_id) && $created_user = $this->_crud->getUser($created_user_id)) {
-            // on envoie les mails
-            $sendmail_data = array(
-                'user' => $created_user,
-                'isnew' => array(
-                    'password' => $request->post('string', 'mot_de_passe')
-                ),
-            );
-            $this->sendmail_confirmation($sendmail_data);
-            $this->sendmail_notification($sendmail_data);
-            $this->sendmail_activation($sendmail_data);
-            // tente l'autologin si necessaire
-            $auth = $this->_crud->getAuth();
-            // pas si on est déjà connecté !
-            if ($created_user['active'] && !$auth) {
-                $this->login($created_user['login'], $request->post('string', 'mot_de_passe'));
-            }
-            if (is_array($created_user)) {
-                $this->data = array_merge_recursive((array)$this->data, $created_user);
+        return parent::createAction($request, $params);
+    }
+
+    // envoie les mails s'il la création s'est bien passée
+    public function handle_errors($request, $errors, $params = null)
+    {
+        if (!count($errors) && ($this->data['formtype'] == 'create')) {
+            $created_user_id = $this->data['values'][0][$this->_crud->table_users . '.id'];
+            if (!empty($created_user_id) && $created_user = $this->_crud->getUser($created_user_id)) {
+                $sendmail_data = array(
+                    'user' => $created_user,
+                    'isnew' => array(
+                        'password' => $request->post('string', 'mot_de_passe')
+                    ),
+                );
+                $this->sendmail_confirmation($sendmail_data);
+                $this->sendmail_notification($sendmail_data);
+                $this->sendmail_activation($sendmail_data);
+                // tente l'autologin si necessaire
+                $auth = $this->_crud->getAuth();
+                // pas si on est déjà connecté !
+                if ($created_user['active'] && !$auth) {
+                    $this->login($created_user['login'], $request->post('string', 'mot_de_passe'));
+                }
+                if (is_array($created_user)) {
+                    $this->data = array_merge_recursive((array)$this->data, $created_user);
+                }
             }
         }
-        return $ret;
+        return parent::handle_errors($request, $errors, $params);
     }
 
     /**
