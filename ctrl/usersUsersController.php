@@ -515,11 +515,9 @@ class usersUsersController extends usersUsersController_Parent
     {
         $ns = $this->getModel('fonctions');
         $users = $this->_crud;
-        if ($users->hasPrivilege('manage_users')) {
-            $url_retour = __WWW__ . '/users/index';
-        } else {
-            $id = $request->get('int', 'id');
-            $this->data['user'] = $users->getUser($id);
+        // url_retour par défaut si utilisateur créé par un admin
+        if (!isset($params['url_retour']) && $users->hasPrivilege('manage_users')) {
+            $params['url_retour'] = __WWW__ . '/users/index';
         }
         if (isset($params['url_retour'])) {
             $ns->redirect($params['url_retour']);
