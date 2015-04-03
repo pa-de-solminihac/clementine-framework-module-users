@@ -459,9 +459,6 @@ class usersUsersController extends usersUsersController_Parent
                 if ($created_user['active'] && !$auth) {
                     $this->login($created_user['login'], $request->post('string', 'mot_de_passe'));
                 }
-                if (is_array($created_user)) {
-                    $this->data = array_merge_recursive((array)$this->data, $created_user);
-                }
             }
         }
         return parent::handle_errors($request, $errors, $params);

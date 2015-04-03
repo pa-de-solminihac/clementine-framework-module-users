@@ -666,7 +666,7 @@ class usersUsersModel extends usersUsersModel_Parent
         if (isset($auth['login']) && strlen($auth['login']) && !isset($user['id'])) {
             // si c'est un adjoint on le rattache au meme parent que le compte maitre
             if (isset($params['adjoint']) && $params['adjoint']) {
-                $parents_directs = $users->getParents($auth['id'], 1, 1);
+                $parents_directs = $this->getParents($auth['id'], 1, 1);
                 $parent_direct = false;
                 if (count($parents_directs)) {
                     $parent_direct = $ns->array_first($parents_directs);
@@ -685,7 +685,7 @@ class usersUsersModel extends usersUsersModel_Parent
                 $id_parent = 0;
             } else {
                 // en cas de modif, on garde l'id parent existant
-                $parents_directs = $users->getParents($user['id'], 1, 1);
+                $parents_directs = $this->getParents($user['id'], 1, 1);
                 $parent_direct = false;
                 if (count($parents_directs)) {
                     $parent_direct = $ns->array_first($parents_directs);
