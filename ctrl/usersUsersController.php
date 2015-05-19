@@ -527,9 +527,9 @@ class usersUsersController extends usersUsersController_Parent
         }
     }
 
-    public function validate($insecure_values, $insecure_primary_key = null)
+    public function validate($insecure_values, $insecure_primary_key = null, $params = null)
     {
-        $previous_errors = parent::validate($insecure_values, $insecure_primary_key);
+        $previous_errors = parent::validate($insecure_values, $insecure_primary_key, $params);
         $my_errors = array();
         $ns = $this->getModel('fonctions');
         $users = $this->_crud;
