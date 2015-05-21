@@ -101,14 +101,14 @@ class usersUsersModel extends usersUsersModel_Parent
             $result = $db->fetch_array($stmt);
             if ($result && $result['id']) {
                 if (!(isset($params['bypass_login']) && $params['bypass_login'])) {
-					// si le compte maître est suspendu, l'utilisateur ne doit plus pouvoir se connecter
+                    // si le compte maître est suspendu, l'utilisateur ne doit plus pouvoir se connecter
                     if ($result['is_alias_of']) {
-						$user = $this->getUser($result['is_alias_of']);
-						if (!$user['active']) {
-							$err->register_err('failed_auth', 'login_error_parent', Clementine::$config['module_users']['login_error_parent'], $module_name);
+                        $user = $this->getUser($result['is_alias_of']);
+                        if (!$user['active']) {
+                            $err->register_err('failed_auth', 'login_error_parent', Clementine::$config['module_users']['login_error_parent'], $module_name);
                             return false;
-						}
-					}
+                        }
+                    }
                     // si un parent est suspendu, l'utilisateur ne doit plus pouvoir se connecter
                     $parents = $this->getParents($result['id']);
                     foreach ($parents as $parent) {
