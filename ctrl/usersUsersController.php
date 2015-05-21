@@ -527,14 +527,14 @@ class usersUsersController extends usersUsersController_Parent
         }
     }
 
-    public function validate($insecure_values, $insecure_primary_key = null)
+    public function validate($insecure_values, $insecure_primary_key = null, $params = null)
     {
-        $previous_errors = parent::validate($insecure_values, $insecure_primary_key);
+        $previous_errors = parent::validate($insecure_values, $insecure_primary_key, $params);
         $my_errors = array();
         $ns = $this->getModel('fonctions');
         $users = $this->_crud;
         // recuperation des donnees et assainissement
-        $donnees = $this->sanitize($insecure_values);
+        $donnees = $this->sanitize($insecure_values, $params);
         // la modification du login requiert le privilege manage_users (ou un bypass dans $params)
         if (!empty($insecure_primary_key[$users->table_users . '-id']) && isset($donnees[$users->table_users . '-login'])) {
             $user = $users->getUser((int)$insecure_primary_key[$users->table_users . '-id']);

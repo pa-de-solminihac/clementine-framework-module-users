@@ -101,6 +101,14 @@ class usersUsersModel extends usersUsersModel_Parent
             $result = $db->fetch_array($stmt);
             if ($result && $result['id']) {
                 if (!(isset($params['bypass_login']) && $params['bypass_login'])) {
+                    // si le compte maître est suspendu, l'utilisateur ne doit plus pouvoir se connecter
+                    if ($result['is_alias_of']) {
+                        $user = $this->getUser($result['is_alias_of']);
+                        if (!$user['active']) {
+                            $err->register_err('failed_auth', 'login_error_parent', Clementine::$config['module_users']['login_error_parent'], $module_name);
+                            return false;
+                        }
+                    }
                     // si un parent est suspendu, l'utilisateur ne doit plus pouvoir se connecter
                     $parents = $this->getParents($result['id']);
                     foreach ($parents as $parent) {
@@ -206,13 +214,13 @@ class usersUsersModel extends usersUsersModel_Parent
                     ON `{$this->table_groups_has_privileges}`.`privilege_id` = `{$this->table_privileges}`.`id`
                 INNER JOIN `{$this->table_users_has_groups}`
                     ON `{$this->table_users_has_groups}`.`group_id` = `{$this->table_groups_has_privileges}`.`group_id`
-            WHERE `{$this->table_users_has_groups}`.`user_id` = '" . (int)$user_id . "' 
+            WHERE `{$this->table_users_has_groups}`.`user_id` = '" . (int)$user_id . "'
         ) UNION (
             SELECT `{$this->table_privileges}`.`privilege`
             FROM `{$this->table_privileges}`
                 INNER JOIN `{$this->table_users_has_privileges}`
                     ON `{$this->table_users_has_privileges}`.`privilege_id` = `{$this->table_privileges}`.`id`
-            WHERE `{$this->table_users_has_privileges}`.`user_id` = '" . (int)$user_id . "' 
+            WHERE `{$this->table_users_has_privileges}`.`user_id` = '" . (int)$user_id . "'
         ) ";
         $privileges = array();
         if ($stmt = $db->query($sql)) {
@@ -234,8 +242,8 @@ class usersUsersModel extends usersUsersModel_Parent
      *     )
      * )
      * le tableau ci-dessus sera traduit ainsi : privilege1 || privilege2 && (privilege3 || privilege4)
-     * @param mixed $needauth : 
-     * @param mixed $specific_uid : 
+     * @param mixed $needauth :
+     * @param mixed $specific_uid :
      * @access public
      * @return void
      */
@@ -272,7 +280,7 @@ class usersUsersModel extends usersUsersModel_Parent
     /**
      * addPrivilege : ajoute un privilège à la table table_privileges
      *
-     * @param mixed $privilege : 
+     * @param mixed $privilege :
      * @access public
      * @return void
      */
@@ -977,7 +985,7 @@ class usersUsersModel extends usersUsersModel_Parent
         $enfants = $this->getUsers($id, null, 1, null, 'user', false);
         $sql = "
             DELETE FROM `" . $table . "`
-            WHERE `descendant` = '" . (int)$id . "' 
+            WHERE `descendant` = '" . (int)$id . "'
                 AND `depth` != 0 ";
         if ($stmt = $db->query($sql)) {
             if ($id_parent) {
@@ -1178,7 +1186,7 @@ class usersUsersModel extends usersUsersModel_Parent
              OR (
                 SELECT id
                 FROM " . $this->table_users . "
-                WHERE (id = '" . (int)$id_alias . "' 
+                WHERE (id = '" . (int)$id_alias . "'
                     AND is_alias_of IN (
                         SELECT is_alias_of
                         FROM " . $this->table_users . "
