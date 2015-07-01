@@ -13,12 +13,12 @@ if ($auth = $this->getModel('users')->getAuth()) {
     );
 } else {
     $toplinks = array();
-        //'Mon compte' => array(
-        //'url' => '#',
-        //'icon' => '<i class="fa fa-user fa-fw"></i>',
-        //),
-        //'divider',
-    $conf = $this->getModuleConfig();
+    //'Mon compte' => array(
+    //'url' => '#',
+    //'icon' => '<i class="fa fa-user fa-fw"></i>',
+    //),
+    //'divider',
+    $conf = $this->getModuleConfig('users');
     if ($conf['allow_frontend_register']) {
         $toplinks['Inscription'] = array(
             'url' => __WWW__ . '/register',
