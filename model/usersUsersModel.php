@@ -153,7 +153,7 @@ class usersUsersModel extends usersUsersModel_Parent
         if ($url_retour_relative == $url_logout_relative) {
             $url_retour = __WWW__;
         }
-        $url_login = $ns->mod_param(__WWW__ . '/users/login', 'url_retour', $url_retour);
+        $url_login = $ns->mod_param(__WWW__ . '/users/login', 'url_retour', urlencode($url_retour));
         return $url_login;
     }
 
