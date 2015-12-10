@@ -20,9 +20,10 @@ class usersHookHelper extends usersHookHelper_Parent
     {
         // appelle le hook parent s'il existe
         parent::before_request($request);
-        // utilisation du hook 'before_request'
+        // dont start session for CORS requests
+        if ($request->METHOD != 'OPTIONS') {
         $this->getModel('users')->getAuth();
+    }
     }
 
 }
-?>
