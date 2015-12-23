@@ -6,7 +6,7 @@
 if (!isset($data['class'])) {
     $data['class'] = 'users';
 }
-$this->getBlock($data['class'] . '/mail_notification_body', $data);
+Clementine::getBlock($data['class'] . '/mail_notification_body', $data);
 ?>
     </body>
 </html>

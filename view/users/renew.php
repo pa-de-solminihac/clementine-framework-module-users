@@ -1,5 +1,5 @@
 <?php
-$this->getBlock('design/header', $data, $request);
+Clementine::getBlock('design/header', $data, $request);
 $current_url = $request->EQUIV[$request->LANG];
 ?>
 <div class="container form_users_renew">
@@ -51,4 +51,4 @@ if (isset($data['error'])) {
     </div>
 </div>
 <?php
-$this->getBlock('design/footer', $data, $request);
+Clementine::getBlock('design/footer', $data, $request);

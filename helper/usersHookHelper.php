@@ -22,8 +22,8 @@ class usersHookHelper extends usersHookHelper_Parent
         parent::before_request($request);
         // dont start session for CORS requests
         if ($request->METHOD != 'OPTIONS') {
-        $this->getModel('users')->getAuth();
-    }
+            Clementine::getModel('users')->getAuth();
+        }
     }
 
 }

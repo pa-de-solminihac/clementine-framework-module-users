@@ -22,9 +22,9 @@ class usersUsersController extends usersUsersController_Parent
         // require privilege "list_users"
         $users = $this->_crud;
         if (!$users->hasPrivilege('list_users')) {
-            $this->getModel('fonctions')->redirect($users->getUrlLogin());
+            Clementine::getModel('fonctions')->redirect($users->getUrlLogin());
         }
-        $conf = $this->getModuleConfig();
+        $conf = Clementine::getModuleConfig();
         // options d'affichage
         $this->hideAllFields();
         $this->unhideField($users->table_users . '.login');
@@ -99,9 +99,9 @@ class usersUsersController extends usersUsersController_Parent
      */
     public function loginAction($request, $params = null)
     {
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         // Traitement de la demande de login
-        $url_retour = $this->getModel('fonctions')->ifGet('html', 'url_retour', null, __WWW__, 1, 1);
+        $url_retour = Clementine::getModel('fonctions')->ifGet('html', 'url_retour', null, __WWW__, 1, 1);
         if (!empty($_POST)) {
             // collect the data from the user
             $login = $ns->strip_tags($request->POST['login']);
@@ -147,7 +147,7 @@ class usersUsersController extends usersUsersController_Parent
                 $this->login($user_to_be['login'], null, $params);
             }
         } else {
-            $this->getModel('fonctions')->redirect(__WWW__);
+            Clementine::getModel('fonctions')->redirect(__WWW__);
         }
         return array(
             'dont_getblock' => true
@@ -156,7 +156,7 @@ class usersUsersController extends usersUsersController_Parent
 
     public function login($login, $password = null, $params = null)
     {
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         // tente l'authentification
         if (isset($params['simulate_user']) && $params['simulate_user']) {
             if (isset($_SESSION['previous_auth'])) {
@@ -165,7 +165,7 @@ class usersUsersController extends usersUsersController_Parent
             $previous_auth = $this->_crud->getAuth();
         }
         $module_name = $this->getCurrentModule();
-        $err = $this->getHelper('errors');
+        $err = Clementine::getHelper('errors');
         $err->flush($module_name);
         $auth = $this->_crud->tryAuth($login, $password, $params);
         $auth_errors = $err->get($module_name, 'failed_auth');
@@ -225,7 +225,7 @@ class usersUsersController extends usersUsersController_Parent
             $this->login($user_to_be['login'], null, $params);
         }
         if (isset($params['url_retour'])) {
-            $this->getModel('fonctions')->redirect($params['url_retour']);
+            Clementine::getModel('fonctions')->redirect($params['url_retour']);
         }
     }
 
@@ -300,7 +300,7 @@ class usersUsersController extends usersUsersController_Parent
             // suppression du user
             if ($id) {
                 if ($success = $this->_crud->delUser($id)) {
-                    $ns = $this->getModel('fonctions');
+                    $ns = Clementine::getModel('fonctions');
                     $ns->redirect($params['url_retour']);
                 }
             }
@@ -319,7 +319,7 @@ class usersUsersController extends usersUsersController_Parent
      */
     public function oubliAction($request, $titre = null, $params = null)
     {
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         if (!empty($_POST)) {
             $login = $ns->strip_tags($request->POST['login']);
             if ($ns->est_email($login)) {
@@ -341,7 +341,7 @@ class usersUsersController extends usersUsersController_Parent
                 if ($titre === null) {
                     $titre = Clementine::$config['clementine_global']['site_name'] . " : demande de renouvellement de votre mot de passe ";
                 }
-                $contenu = $this->getBlockHtml('users/mail_oubli_pass', array(
+                $contenu = Clementine::getBlockHtml('users/mail_oubli_pass', array(
                     'user' => $user,
                     'lien_confirmation' => $lien_confirmation
                 ));
@@ -365,7 +365,7 @@ class usersUsersController extends usersUsersController_Parent
      */
     public function renewAction($request, $titre = null, $params = null)
     {
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         $code = $request->get('string', 'c');
         $login = base64_decode($request->get('string', 'l'));
         if ($ns->est_email($login)) {
@@ -379,7 +379,7 @@ class usersUsersController extends usersUsersController_Parent
                         if ($titre === null) {
                             $titre = Clementine::$config['clementine_global']['site_name'] . " : renouvellement de votre mot de passe";
                         }
-                        $contenu = $this->getBlockHtml('users/mail_renew_pass', array(
+                        $contenu = Clementine::getBlockHtml('users/mail_renew_pass', array(
                             'user' => $user,
                             'newpass' => $newpass
                         ));
@@ -411,7 +411,7 @@ class usersUsersController extends usersUsersController_Parent
         if (!isset($params['skip_auth'])) {
             $this->_crud->needPrivilege('manage_users');
         }
-        $conf = $this->getModuleConfig();
+        $conf = Clementine::getModuleConfig();
         // default_group
         $default_group = 'clients';
         if (!empty($params['default_group'])) {
@@ -516,7 +516,7 @@ class usersUsersController extends usersUsersController_Parent
 
     public function createdAction($request, $params = null)
     {
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         $users = $this->_crud;
         // url_retour par défaut si utilisateur créé par un admin
         if (!isset($params['url_retour']) && $users->hasPrivilege('manage_users')) {
@@ -531,7 +531,7 @@ class usersUsersController extends usersUsersController_Parent
     {
         $previous_errors = parent::validate($insecure_values, $insecure_primary_key, $params);
         $my_errors = array();
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         $users = $this->_crud;
         // recuperation des donnees et assainissement
         $donnees = $this->sanitize($insecure_values, $params);
@@ -570,19 +570,19 @@ class usersUsersController extends usersUsersController_Parent
             $my_errors['mot_de_passe'] = $err_msg_pwd;
             $my_errors['confirmation_du_mot_de_passe'] = $err_msg_pwd;
         }
-        $ret = $this->getModel('fonctions')->array_replace_recursive($my_errors, $previous_errors);
+        $ret = Clementine::getModel('fonctions')->array_replace_recursive($my_errors, $previous_errors);
         return $ret;
     }
 
     public function sendmail_confirmation($data, $titre = null, $params = null)
     {
-        $conf = $this->getModuleConfig();
-        $ns = $this->getModel('fonctions');
+        $conf = Clementine::getModuleConfig();
+        $ns = Clementine::getModel('fonctions');
         if ($conf['send_account_confirmation'] && isset($data['isnew'])) {
             if ($titre === null) {
                 $titre = Clementine::$config['clementine_global']['site_name'] . " : votre nouveau compte";
             }
-            $contenu = $this->getBlockHtml('users/mail_confirmation', $data);
+            $contenu = Clementine::getBlockHtml('users/mail_confirmation', $data);
             $contenu_texte = $ns->strip_tags(str_replace('<hr />', '------------------------------', str_replace('<br />', "\n", $contenu))) . "\n";
             $to = $data['user']['login'];
             $from = Clementine::$config['clementine_global']['email_exp'];
@@ -596,13 +596,13 @@ class usersUsersController extends usersUsersController_Parent
 
     public function sendmail_notification($data, $titre = null, $params = null)
     {
-        $conf = $this->getModuleConfig();
-        $ns = $this->getModel('fonctions');
+        $conf = Clementine::getModuleConfig();
+        $ns = Clementine::getModel('fonctions');
         if ($conf['send_account_notification']) {
             if ($titre === null) {
                 $titre = Clementine::$config['clementine_global']['site_name'] . " : inscription d'un nouvel utilisateur";
             }
-            $contenu = $this->getBlockHtml('users/mail_notification', $data);
+            $contenu = Clementine::getBlockHtml('users/mail_notification', $data);
             $contenu_texte = $ns->strip_tags(str_replace('<hr />', '------------------------------', str_replace('<br />', "\n", $contenu))) . "\n";
             $to = Clementine::$config['clementine_global']['email_prod'];
             $from = Clementine::$config['clementine_global']['email_exp'];
@@ -616,7 +616,7 @@ class usersUsersController extends usersUsersController_Parent
 
     public function sendmail_activation($data, $titre = null, $params = null)
     {
-        $conf = $this->getModuleConfig();
+        $conf = Clementine::getModuleConfig();
         if ($conf['send_account_activation']) {
             // TODO: envoi d'un mail d'activation avec une URL permettant d'activer le compte
         }
@@ -625,7 +625,7 @@ class usersUsersController extends usersUsersController_Parent
     public function hide_fields_create_or_update($request, $params = null)
     {
         $ret = parent::hide_fields_create_or_update($request, $params);
-        $users = $this->getModel('users');
+        $users = Clementine::getModel('users');
         $this->hideFields(array(
             $users->table_users . '.date_creation',
             $users->table_users . '.date_modification',

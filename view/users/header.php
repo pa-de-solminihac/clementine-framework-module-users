@@ -1,2 +1,2 @@
 <?php
-$this->getBlock('design/header-admin', $data, $request);
+Clementine::getBlock('design/header-admin', $data, $request);

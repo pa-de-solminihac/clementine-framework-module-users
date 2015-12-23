@@ -1,5 +1,5 @@
 <?php
-$ns = $this->getModel('fonctions');
+$ns = Clementine::getModel('fonctions');
 $current_key = $ns->htmlentities($data['current_key']);
 if (!empty($data['alldata']['simulate_users'])) {
     if (!isset($data['alldata']['simulate_url'])) {
@@ -20,4 +20,4 @@ if (!empty($data['alldata']['simulate_users'])) {
         $data['crud-sections'] = $ns->array_override($sections, $data['crud-sections']);
     }
 }
-$this->getParentBlock($data, $request);
+Clementine::getParentBlock($data, $request);

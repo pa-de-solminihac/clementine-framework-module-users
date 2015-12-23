@@ -71,8 +71,8 @@ class usersUsersModel extends usersUsersModel_Parent
     public function tryAuth($login, $password, $params = null)
     {
         // recupere le grain de sel pour hasher le mot de passe
-        $db = $this->getModel('db');
-        $err = $this->getHelper('errors');
+        $db = Clementine::getModel('db');
+        $err = Clementine::getHelper('errors');
         $module_name = $this->getCurrentModule();
         $sql = '
             SELECT salt
@@ -110,7 +110,7 @@ class usersUsersModel extends usersUsersModel_Parent
                         }
                     }
                     // si un parent est suspendu, l'utilisateur ne doit plus pouvoir se connecter
-                    $parents = $this->getParents($result['id']);
+                    $parents = Clementine::getParents($result['id']);
                     foreach ($parents as $parent) {
                         if (!$parent['active']) {
                             $err->register_err('failed_auth', 'login_error_parent', Clementine::$config['module_users']['login_error_parent'], $module_name);
@@ -145,8 +145,8 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function getUrlLogin()
     {
-        $ns = $this->getModel('fonctions');
-        $url_retour = urldecode($this->getModel('fonctions')->ifPost('html', 'url_retour', null, $_SERVER['REQUEST_URI'], 1, 1));
+        $ns = Clementine::getModel('fonctions');
+        $url_retour = urldecode(Clementine::getModel('fonctions')->ifPost('html', 'url_retour', null, $_SERVER['REQUEST_URI'], 1, 1));
         // pour éviter de tourner en boucle sur la page de déconnexion
         $url_logout_relative = str_replace(__WWW__, __BASE__, $this->getUrlLogout());
         $url_retour_relative = str_replace(__WWW__, __BASE__, $url_retour);
@@ -186,7 +186,7 @@ class usersUsersModel extends usersUsersModel_Parent
                 return $auth;
             }
         }
-        $this->getModel('fonctions')->redirect($this->getUrlLogin());
+        Clementine::getModel('fonctions')->redirect($this->getUrlLogin());
     }
 
     /**
@@ -206,7 +206,7 @@ class usersUsersModel extends usersUsersModel_Parent
             return array();
         }
         // pas besoin de passer par toutes les tables, on peut raccourcir les traitements en joignant seulement les tables intermediaires
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "(
             SELECT `{$this->table_privileges}`.`privilege`
             FROM `{$this->table_privileges}`
@@ -260,7 +260,7 @@ class usersUsersModel extends usersUsersModel_Parent
         $privileges_granted = $this->getPrivileges($specific_uid);
         $has_privilege = $this->checkPrivileges($privilege, $privileges_granted);
         if (!$has_privilege && $needauth) {
-            $this->getModel('fonctions')->redirect($this->getUrlLogin());
+            Clementine::getModel('fonctions')->redirect($this->getUrlLogin());
         }
         return $has_privilege;
     }
@@ -286,7 +286,7 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function addPrivilege($privilege)
     {
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             INSERT IGNORE INTO {$this->table_privileges} (
                 `privilege`
@@ -310,7 +310,7 @@ class usersUsersModel extends usersUsersModel_Parent
         if ($type == 'user') {
             $table = $this->table_users;
         }
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT `" . $table . "`.*, depth
             FROM `" . $table . "`
@@ -364,7 +364,7 @@ class usersUsersModel extends usersUsersModel_Parent
     public function getUsersByGroup($id_group)
     {
         $id_group = (int)$id_group;
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT `" . $this->table_users . "`.*
             FROM `" . $this->table_users . "`
@@ -392,7 +392,7 @@ class usersUsersModel extends usersUsersModel_Parent
     public function getUser($id, $more_details = false)
     {
         $id = (int)$id;
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         if (!$more_details) {
             $sql = "
                 SELECT *
@@ -423,7 +423,7 @@ class usersUsersModel extends usersUsersModel_Parent
     public function getGroup($id)
     {
         $id = (int)$id;
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT *
             FROM `" . $this->table_groups . "`
@@ -438,7 +438,7 @@ class usersUsersModel extends usersUsersModel_Parent
 
     public function getGroupParents($id, $max_depth = 0, $min_depth = 0)
     {
-        return $this->getParents($id, $max_depth, $min_depth, 'group');
+        return Clementine::getParents($id, $max_depth, $min_depth, 'group');
     }
 
     /**
@@ -464,7 +464,7 @@ class usersUsersModel extends usersUsersModel_Parent
             $table = $this->table_groups;
             break;
         }
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT `" . $table . "`.*, depth
             FROM `" . $table . "`
@@ -518,7 +518,7 @@ class usersUsersModel extends usersUsersModel_Parent
             $table = $this->table_groups;
             break;
         }
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT `" . $table . "`.*, depth
             FROM `" . $table . "`
@@ -547,7 +547,7 @@ class usersUsersModel extends usersUsersModel_Parent
             $table = $this->table_users;
             $table_treepaths = $this->table_users_treepaths;
         }
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT `" . $table . "`.*, t1.*, t2.*
             FROM `" . $table . "`
@@ -597,7 +597,7 @@ class usersUsersModel extends usersUsersModel_Parent
     public function getGroupsByUser($id)
     {
         $id = (int)$id;
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = '
             SELECT `' . $this->table_groups . '`.`group`
             FROM ' . $this->table_groups . '
@@ -621,7 +621,7 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function getUserByLogin($login)
     {
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = '
             SELECT *
             FROM ' . $this->table_users . '
@@ -634,12 +634,12 @@ class usersUsersModel extends usersUsersModel_Parent
 
     public function create($insecure_values, $params = null)
     {
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         $user = $this->getUserByLogin($insecure_values[$this->table_users . '-login']);
         if ($user) {
             return false;
         }
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         if (empty($params['dont_start_transaction'])) {
             $db->query('START TRANSACTION');
         }
@@ -674,7 +674,7 @@ class usersUsersModel extends usersUsersModel_Parent
         if (isset($auth['login']) && strlen($auth['login']) && !isset($user['id'])) {
             // si c'est un adjoint on le rattache au meme parent que le compte maitre
             if (isset($params['adjoint']) && $params['adjoint']) {
-                $parents_directs = $this->getParents($auth['id'], 1, 1);
+                $parents_directs = Clementine::getParents($auth['id'], 1, 1);
                 $parent_direct = false;
                 if (count($parents_directs)) {
                     $parent_direct = $ns->array_first($parents_directs);
@@ -693,7 +693,7 @@ class usersUsersModel extends usersUsersModel_Parent
                 $id_parent = 0;
             } else {
                 // en cas de modif, on garde l'id parent existant
-                $parents_directs = $this->getParents($user['id'], 1, 1);
+                $parents_directs = Clementine::getParents($user['id'], 1, 1);
                 $parent_direct = false;
                 if (count($parents_directs)) {
                     $parent_direct = $ns->array_first($parents_directs);
@@ -727,7 +727,7 @@ class usersUsersModel extends usersUsersModel_Parent
 
     public function update($insecure_values, $insecure_primary_key = null, $params = null)
     {
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         $id = (int)$insecure_primary_key[$this->table_users . '-id'];
         $user = $this->getUser($id);
         if (!$user) {
@@ -745,7 +745,7 @@ class usersUsersModel extends usersUsersModel_Parent
         // genere un code de confirmation aleatoire
         $insecure_values[$this->table_users . '-code_confirmation'] = hash('sha256', (microtime() . rand(0, getrandmax())));
         // met a jour les champs en base de donnees
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         if (empty($params['dont_start_transaction'])) {
             $db->query('START TRANSACTION');
         }
@@ -773,7 +773,7 @@ class usersUsersModel extends usersUsersModel_Parent
     {
         $id = (int)$id;
         if ($id) {
-            $db = $this->getModel('db');
+            $db = Clementine::getModel('db');
             $sql = "DELETE FROM " . $this->table_users_has_groups . " WHERE `user_id` = '$id' ";
             $stmt = $db->query($sql);
             $sql = "DELETE FROM " . $this->table_users . " WHERE `id` = '$id' LIMIT 1 ";
@@ -800,7 +800,7 @@ class usersUsersModel extends usersUsersModel_Parent
         // hash le password avec le grain de sel
         $password_hash = hash('sha256', $salt . $password);
         $date = date('Y-m-d H:i:s');
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "UPDATE " . $this->table_users . "
                     SET `password`          = '" . $db->escape_string($password_hash) . "',
                         `salt`              = '" . $salt . "',
@@ -826,7 +826,7 @@ class usersUsersModel extends usersUsersModel_Parent
         $group_id = (int)$group_id;
         $user = $this->getUser($id);
         if ($user) {
-            $db = $this->getModel('db');
+            $db = Clementine::getModel('db');
             $sql = "INSERT INTO `" . $this->table_users_has_groups . "` (user_id, group_id)
                     VALUES ('" . $id . "', '" . $group_id . "')";
             return $db->query($sql);
@@ -849,7 +849,7 @@ class usersUsersModel extends usersUsersModel_Parent
         $group_id = (int)$group_id;
         $user = $this->getUser($id);
         if ($user) {
-            $db = $this->getModel('db');
+            $db = Clementine::getModel('db');
             $sql = "DELETE FROM `" . $this->table_users_has_groups . "`
                 WHERE `user_id` = '" . $id . "'
                 AND `group_id` = '" . $group_id . "'
@@ -868,7 +868,7 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function getGroupByName($group)
     {
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT id
             FROM `" . $this->table_groups . "`
@@ -893,7 +893,7 @@ class usersUsersModel extends usersUsersModel_Parent
         // insertion du user en 2 temps : insertion minimaliste, et update du user dans un 2e temps (moins performant mais factorise le code)
         $group = $this->getGroupByName($name);
         if (!$group) {
-            $db = $this->getModel('db');
+            $db = Clementine::getModel('db');
             if (empty($params['dont_start_transaction'])) {
                 $db->query('START TRANSACTION');
             }
@@ -941,7 +941,7 @@ class usersUsersModel extends usersUsersModel_Parent
                 $group[$key] = $val;
             }
             if ($group) {
-                $db = $this->getModel('db');
+                $db = Clementine::getModel('db');
                 if (empty($params['dont_start_transaction'])) {
                     $db->query('START TRANSACTION');
                 }
@@ -981,7 +981,7 @@ class usersUsersModel extends usersUsersModel_Parent
         }
         $id = (int)$id;
         $id_parent = (int)$id_parent;
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $enfants = $this->getUsers($id, null, 1, null, 'user', false);
         $sql = "
             DELETE FROM `" . $table . "`
@@ -1022,7 +1022,7 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function sanitize($insecure_array)
     {
-        $ns = $this->getModel('fonctions');
+        $ns = Clementine::getModel('fonctions');
         $secure_array = array();
         if (isset($insecure_array['password']) && ($insecure_array['password'] != 'password')) {
             $secure_array['password'] = $ns->strip_tags($insecure_array['password']);
@@ -1125,7 +1125,7 @@ class usersUsersModel extends usersUsersModel_Parent
      */
     public function isParent($id_parent, $id_child, $depth = 0)
     {
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT depth
             FROM " . $this->table_users_treepaths . "
@@ -1172,7 +1172,7 @@ class usersUsersModel extends usersUsersModel_Parent
         if ($id_alias == $id_user) {
             return false;
         }
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT id
             FROM " . $this->table_users . "
@@ -1218,7 +1218,7 @@ class usersUsersModel extends usersUsersModel_Parent
         if ($id_sibling == $id_user) {
             return false;
         }
-        $db = $this->getModel('db');
+        $db = Clementine::getModel('db');
         $sql = "
             SELECT depth
             FROM " . $this->table_users_treepaths . "

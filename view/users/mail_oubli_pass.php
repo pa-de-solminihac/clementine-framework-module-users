@@ -6,7 +6,7 @@
 if (!isset($data['class'])) {
     $data['class'] = 'users';
 }
-$this->getBlock($data['class'] . '/mail_oubli_pass_body', $data);
+Clementine::getBlock($data['class'] . '/mail_oubli_pass_body', $data);
 ?>
     </body>
 </html>

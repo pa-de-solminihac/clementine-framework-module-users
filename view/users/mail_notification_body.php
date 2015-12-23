@@ -4,14 +4,14 @@ Un nouvel utilisateur s'est inscrit sur votre site.<br />
 <br />
 <strong>Adresse e-mail</strong><br />
 <?php
-echo $this->getModel('fonctions')->htmlentities($data['user']['login']);
+echo Clementine::getModel('fonctions')->htmlentities($data['user']['login']);
 ?><br />
 <br />
 <strong>Groupe(s)</strong><br />
 <?php
-$groups = array_keys($this->getModel('users')->getGroupsByUser($data['user']['id']));
+$groups = array_keys(Clementine::getModel('users')->getGroupsByUser($data['user']['id']));
 if ($groups) {
-    echo $this->getModel('fonctions')->htmlentities(implode(', ', $groups));
+    echo Clementine::getModel('fonctions')->htmlentities(implode(', ', $groups));
 } else {
     echo '<em>aucun</em>';
 }

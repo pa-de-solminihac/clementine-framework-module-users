@@ -1,2 +1,2 @@
 <?php
-$this->getBlock('design/footer-admin', $data, $request);
+Clementine::getBlock('design/footer-admin', $data, $request);

@@ -1,5 +1,5 @@
 <?php
-$this->getBlock('design/header', $data, $request);
+Clementine::getBlock('design/header', $data, $request);
 ?>
 <div class="container form_users_logout">
     <div class="row">
@@ -12,7 +12,7 @@ $this->getBlock('design/header', $data, $request);
                 </div>
                 <div class="panel-body">
 <?php
-if ($auth = $this->getModel('users')->getAuth()) {
+if ($auth = Clementine::getModel('users')->getAuth()) {
 ?>
                     <p>
                         Vous êtes actuellement connecté.
@@ -37,4 +37,4 @@ if ($auth = $this->getModel('users')->getAuth()) {
     </div>
 </div>
 <?php
-$this->getBlock('design/footer', $data, $request);
+Clementine::getBlock('design/footer', $data, $request);

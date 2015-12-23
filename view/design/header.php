@@ -1,7 +1,7 @@
 <?php
-$ns = $this->getModel('fonctions');
-$users = $this->getModel('users');
-if ($auth = $this->getModel('users')->getAuth()) {
+$ns = Clementine::getModel('fonctions');
+$users = Clementine::getModel('users');
+if ($auth = Clementine::getModel('users')->getAuth()) {
     $toplinks = array (
         $auth['login'] => array (
             'url' => '#',
@@ -18,7 +18,7 @@ if ($auth = $this->getModel('users')->getAuth()) {
     //'icon' => '<i class="fa fa-user fa-fw"></i>',
     //),
     //'divider',
-    $conf = $this->getModuleConfig('users');
+    $conf = Clementine::getModuleConfig('users');
     if ($conf['allow_frontend_register']) {
         $toplinks['Inscription'] = array(
             'url' => __WWW__ . '/register',
@@ -35,4 +35,4 @@ if (empty($data['navbar-toplinks'])) {
 } else {
     $data['navbar-toplinks'] = $ns->array_override($toplinks, $data['navbar-toplinks']);
 }
-$this->getParentBlock($data);
+Clementine::getParentBlock($data);

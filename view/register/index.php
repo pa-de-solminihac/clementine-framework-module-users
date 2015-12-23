@@ -4,7 +4,7 @@ $data['hidden_sections']['footer'] = 1;
 $data['hidden_sections']['backbutton'] = 1;
 $data['hidden_sections']['savebutton'] = 1;
 if (!$request->AJAX) {
-    $this->getBlock('design/header', $data, $request);
+    Clementine::getBlock('design/header', $data, $request);
 ?>
 <div class="container form_users_login">
     <div class="row">
@@ -17,7 +17,7 @@ if (!$request->AJAX) {
                 </div>
                 <div class="panel-body">
 <?php
-    $this->getBlock('register/create', $data, $request);
+    Clementine::getBlock('register/create', $data, $request);
 ?>
                 </div>
             </div>
@@ -25,5 +25,5 @@ if (!$request->AJAX) {
     </div>
 </div>
 <?php
-    $this->getBlock('design/footer', $data, $request);
+    Clementine::getBlock('design/footer', $data, $request);
 }

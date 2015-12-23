@@ -1,5 +1,5 @@
 <?php
-$this->getBlock('design/header', $data, $request);
+Clementine::getBlock('design/header', $data, $request);
 $current_url = $request->EQUIV[$request->LANG];
 ?>
 <div class="container form_users_oubli">
@@ -56,4 +56,4 @@ if (isset($data['message'])) {
     </div>
 </div>
 <?php
-$this->getBlock('design/footer', $data, $request);
+Clementine::getBlock('design/footer', $data, $request);

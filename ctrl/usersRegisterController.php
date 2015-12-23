@@ -14,13 +14,13 @@ class usersRegisterController extends usersRegisterController_Parent
     // cette page permet de se créer un compte utilisateur, elle n'est accessible que si le paramètre [module_users]allow_frontend_register est activé
     public function indexAction($request, $params = null)
     {
-        $conf = $this->getModuleConfig('register');
+        $conf = Clementine::getModuleConfig('register');
         if (!$conf['allow_frontend_register']) {
             return $this->trigger404();
         }
-        $users = $this->getModel('register');
+        $users = Clementine::getModel('register');
         if ($auth = $users->getAuth()) {
-            $this->getModel('fonctions')->redirect(__WWW__);
+            Clementine::getModel('fonctions')->redirect(__WWW__);
         }
         $params['skip_auth'] = 1;
         $userscontroller = $this->getController('register');

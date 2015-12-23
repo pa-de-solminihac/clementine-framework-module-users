@@ -1,6 +1,6 @@
 <?php
-$ns = $this->getModel('fonctions');
-$users = $this->getModel('users');
+$ns = Clementine::getModel('fonctions');
+$users = Clementine::getModel('users');
 $dropdown = array();
 $auth = $users->getAuth();
 if ($auth) {
@@ -32,7 +32,7 @@ if ($auth) {
     } else {
         $data['navbar-toplinks-dropdown'] = $ns->array_override($dropdown, $data['navbar-toplinks-dropdown']);
     }
-    $this->getBlock('design/menu-li', $data['navbar-toplinks-dropdown'], $request);
+    Clementine::getBlock('design/menu-li', $data['navbar-toplinks-dropdown'], $request);
 ?>
                     </ul>
 <?php

@@ -1,6 +1,6 @@
 <?php
-$ns = $this->getModel('fonctions');
-$users = $this->getModel('users');
+$ns = Clementine::getModel('fonctions');
+$users = Clementine::getModel('users');
 $auth = $users->getAuth();
 $toplinks = array (
     $auth['login'] => array (
@@ -37,4 +37,4 @@ if ($users->hasPrivilege('manage_users')) {
         $data['navbar-sidebar'] = $ns->array_override($sidebar, $data['navbar-sidebar']);
     }
 }
-$this->getParentBlock($data);
+Clementine::getParentBlock($data);
