@@ -1,6 +1,6 @@
 <?php
 $this->getBlock('design/header', $data, $request);
-$current_url = $request->EQUIV[$request->LANG];
+$current_url = urlencode($request->EQUIV[$request->LANG]);
 ?>
 <div class="container form_users_login">
     <div class="row">
@@ -23,7 +23,7 @@ if (!empty($data['message'])) {
 <?php
 }
 ?>
-                    <form role="form" action="<?php echo __WWW__; ?>/users/login?url_retour=<?php echo (isset($data['url_retour'])) ? urlencode($data['url_retour']) : urlencode($current_url); ?>" method="post">
+                    <form role="form" action="<?php echo __WWW__; ?>/users/login?url_retour=<?php echo (isset($data['url_retour'])) ? $data['url_retour'] : $current_url; ?>" method="post">
                         <fieldset>
                             <div class="form-group">
                                 <input class="form-control" placeholder="Adresse e-mail" id="form_users_login" name="login" type="text" autofocus tabindex="1">
