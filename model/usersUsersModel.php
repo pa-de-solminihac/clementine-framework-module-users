@@ -22,22 +22,26 @@ class usersUsersModel extends usersUsersModel_Parent
 
     public function _init($params = null)
     {
-        $this->tables = array(
-            $this->table_users => '',
-            $this->table_users_has_groups => array(
-                'inner join' => "`" . $this->table_users_has_groups . "`.`user_id` = `" . $this->table_users . "`.`id` "
-            ) , // determine le champ AI andco_om.id
-            $this->table_groups => array(
-                'inner join' => "`" . $this->table_users_has_groups . "`.`group_id` = `" . $this->table_groups . "`.`id` "
-            ) , // determine le champ AI andco_om.id
-
+        if (empty($this->tables)) {
+            $this->tables = array();
+        }
+        if (empty($this->metas['readonly_tables'])) {
+            $this->metas['readonly_tables'] = array();
+        }
+        if (empty($this->group_by)) {
+            $this->group_by = array();
+        }
+        $this->tables[$this->table_users] = '';
+        $this->tables[$this->table_users_has_groups] = array(
+            'inner join' => "`" . $this->table_users_has_groups . "`.`user_id` = `" . $this->table_users . "`.`id` "
         );
-        $this->metas['readonly_tables'] = array(
-            $this->table_users_has_groups => '',
-            $this->table_groups => ''
+        $this->tables[$this->table_groups] = array(
+            'inner join' => "`" . $this->table_users_has_groups . "`.`group_id` = `" . $this->table_groups . "`.`id` "
         );
+        $this->metas['readonly_tables'][$this->table_users_has_groups] = '';
+        $this->metas['readonly_tables'][$this->table_groups] = '';
         $this->group_by = array_merge($this->group_by, array(
-            'user_id'
+            "`" . $this->table_users_has_groups . "`.`user_id`"
         ));
     }
 
@@ -718,7 +722,7 @@ class usersUsersModel extends usersUsersModel_Parent
         $insecure_primary_key = array(
             $this->table_users . '-id' => $last_insert_id
         );
-        $this->update($insecure_values, $insecure_primary_key, $params);
+        $this->update($insecure_values, $insecure_primary_key, $fake_params);
         if (empty($params['dont_start_transaction'])) {
             $db->query('COMMIT');
         }
