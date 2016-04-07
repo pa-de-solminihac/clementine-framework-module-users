@@ -722,9 +722,10 @@ class usersUsersModel extends usersUsersModel_Parent
         $insecure_primary_key = array(
             $this->table_users . '-id' => $last_insert_id
         );
-        $this->update($insecure_values, $insecure_primary_key, $fake_params);
-        if (empty($params['dont_start_transaction'])) {
-            $db->query('COMMIT');
+        if ($ret = $this->update($insecure_values, $insecure_primary_key, $fake_params)) {
+            if (empty($params['dont_start_transaction'])) {
+                $db->query('COMMIT');
+            }
         }
         return $last_insert_ids;
     }
