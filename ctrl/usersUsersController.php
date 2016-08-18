@@ -352,7 +352,7 @@ class usersUsersController extends usersUsersController_Parent
                 $ns->envoie_mail($to, $from, $fromname, $titre, $contenu_texte, $contenu);
             }
             if (empty($this->data['error'])) {
-                $this->data['message'] = 'Un e-mail contenant les instructions à suivre pour renouveler votre mot de passe vous a été envoyé. <br /><br /><strong>N\'oubliez pas de consulter également votre courier indésirable.</strong>';
+                $this->data['message'] = 'Un e-mail contenant les instructions à suivre pour renouveler votre mot de passe vous a été envoyé. <br /><br /><strong>N\'oubliez pas de consulter également votre courrier indésirable.</strong>';
             }
         }
     }
