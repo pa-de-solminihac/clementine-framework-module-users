@@ -410,6 +410,7 @@ class usersUsersModel extends usersUsersModel_Parent
                     INNER JOIN `" . $this->table_users_treepaths . "`
                         ON `" . $this->table_users . "`.id = `" . $this->table_users_treepaths . "`.`descendant`
                 WHERE `" . $this->table_users . "`.`id` = '" . (int)$id . "'
+                ORDER BY `" . $this->table_users_treepaths . "`.`depth` DESC
                 LIMIT 1 ";
         }
         $stmt = $db->query($sql);
